@@ -1,9 +1,14 @@
 plugins {
     kotlin("multiplatform") version "1.7.10"
+    id("org.flywaydb.flyway") version "9.3.0"
+    id("org.springframework.boot") version "2.7.3"
+    id("io.spring.dependency-management") version "1.0.13.RELEASE"
+    kotlin("plugin.spring") version "1.6.21"
+    kotlin("plugin.jpa") version "1.6.21"
     application
 }
 
-group = "me.magnu"
+group = "com.experis.mangekamp"
 version = "1.0-SNAPSHOT"
 
 repositories {
@@ -21,12 +26,25 @@ kotlin {
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
         }
+        flyway {
+            val dbUrl: String by project.extra.properties
+            val dbUser: String by project.extra.properties
+            val dbPassword: String by project.extra.properties
+
+            url = dbUrl
+            user = dbUser
+            password = dbPassword
+            driver = "org.postgresql.Driver"
+            schemas = arrayOf("public")
+            locations = arrayOf("filesystem:src/main/resources/db/migration", "classpath:db/migration")
+        }
     }
     js(LEGACY) {
         binaries.executable()
         browser {
             commonWebpackConfig {
                 cssSupport.enabled = true
+                outputPath = File(buildDir, "processedResources/jvm/main/static/")
             }
         }
     }
@@ -39,12 +57,22 @@ kotlin {
         }
         val jvmMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-server-netty:2.0.1")
-                implementation("io.ktor:ktor-server-html-builder-jvm:2.0.1")
-                implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.2")
+                implementation("org.flywaydb:flyway-core")
+                implementation("org.postgresql:postgresql:42.5.0")
+                implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+                implementation("org.springframework.boot:spring-boot-starter-security")
+                implementation("org.springframework.boot:spring-boot-starter-web")
+                implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+                implementation("org.jetbrains.kotlin:kotlin-reflect")
+                implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
             }
         }
-        val jvmTest by getting
+        val jvmTest by getting {
+            dependencies {
+                implementation("org.springframework.boot:spring-boot-starter-test")
+                implementation("org.springframework.security:spring-security-test")
+            }
+        }
         val jsMain by getting {
             dependencies {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react:18.0.0-pre.332-kotlin-1.6.21")
@@ -58,7 +86,7 @@ kotlin {
 }
 
 application {
-    mainClass.set("me.magnu.application.ServerKt")
+    mainClass.set("com.experis.mangekamp.MangekampApplicationKt")
 }
 
 tasks.named<Copy>("jvmProcessResources") {

@@ -1,4 +1,5 @@
 import kotlinx.browser.document
+import org.w3c.dom.ElementCreationOptions
 import react.create
 import react.dom.client.createRoot
 
