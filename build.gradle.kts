@@ -45,6 +45,7 @@ kotlin {
             commonWebpackConfig {
                 cssSupport.enabled = true
                 outputPath = File(buildDir, "processedResources/jvm/main/static/")
+                devServer?.proxy = mutableMapOf("/" to "http://localhost:8080")
             }
         }
     }
@@ -79,6 +80,8 @@ kotlin {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:18.0.0-pre.332-kotlin-1.6.21")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-emotion:11.9.0-pre.332-kotlin-1.6.21")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-router-dom:6.3.0-pre.332-kotlin-1.6.21")
+                implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.3")
             }
         }
         val jsTest by getting
