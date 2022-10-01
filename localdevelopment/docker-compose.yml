@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  database:
+    image: postgres:14.5
+    environment:
+      - POSTGRES_PASSWORD=password
+    networks:
+      - mangekamp_backend
+    ports:
+      - 5432:5432
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_PASSWORD=password
+      - PGADMIN_DEFAULT_EMAIL=postgres@post.gres
+    networks:
+      - mangekamp_backend
+    ports:
+      - 80:80
+    volumes:
+      - ./pgadmin-servers.json:/pgadmin4/servers.json
+networks:
+  mangekamp_backend:

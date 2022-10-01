@@ -1,0 +1,1 @@
+INSERT INTO public.admin_user(email, name, password_digest, username) VALUES ( 'mangekamp@no.experis.com', 'Mange Kamp', '{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW', 'mangekamp');
