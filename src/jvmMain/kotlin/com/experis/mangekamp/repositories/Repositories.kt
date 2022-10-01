@@ -26,5 +26,5 @@ interface PersonRepository : JpaRepository<Person, Long>
 
 @Repository
 interface AdminUserRepository : JpaRepository<AdminUser, Long> {
-    fun findByUsername(username: String): AdminUser?
+    fun findByUsername(username: String?): AdminUser?
 }

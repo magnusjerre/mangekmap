@@ -24,14 +24,20 @@ class WebSecurityConfig {
     @Bean
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http.authorizeRequests()
-            .antMatchers("/multiplatform-**","/static/**", "/resources/**", "/js/**", "/resources/js/**", "/public/**")
+            .antMatchers(
+                "/multiplatform-**",
+                "/static/**",
+                "/resources/**",
+                "/js/**",
+                "/resources/js/**",
+                "/public/**",
+                "/index*",
+                "/index.html",
+            )
             .permitAll()
             .anyRequest().authenticated()
             .and()
-            .formLogin().loginPage("/index.html")
-            .loginProcessingUrl("/perform_login")
-            .defaultSuccessUrl("/homepage.html", true)
-            .failureUrl("/index.html?error=true")
+            .formLogin()
             .permitAll()
         return http.build()
     }
@@ -41,15 +47,13 @@ class WebSecurityConfig {
 class MangekampUserDetailsService(
     private val adminUserRepository: AdminUserRepository
 ) : UserDetailsService {
-
     override fun loadUserByUsername(username: String?): UserDetails {
-        username ?: throw IllegalArgumentException("Can't look for user with username null")
-        return adminUserRepository.findByUsername(username)?.let { adminUser ->
-            User(
-                adminUser.username,
-                adminUser.passwordDigest,
-                mutableListOf()
-            )
+        return adminUserRepository.findByUsername(username)?.let {
+            User.builder()
+                .username(it.username)
+                .password(it.passwordDigest)
+                .roles("USER")
+                .build()
         } ?: throw UsernameNotFoundException(username)
     }
 }
