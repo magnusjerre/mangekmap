@@ -1,19 +1,19 @@
 import csstype.px
 import csstype.rgb
+import emotion.react.css
 import react.FC
 import react.Props
-import emotion.react.css
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.input
 import react.useState
 
 external interface WelcomeProps : Props {
-    var name: String
+    var name: String?
 }
 
 val Welcome = FC<WelcomeProps> { props ->
-    var name by useState(props.name)
+    var name by useState(props.name ?: "Kotlin/JS")
     div {
         css {
             padding = 5.px

@@ -1,14 +1,15 @@
 import kotlinx.browser.document
-import org.w3c.dom.ElementCreationOptions
+import kotlinx.coroutines.MainScope
 import react.create
 import react.dom.client.createRoot
+
+// Settes opp for at vi skal kunne kjøre asynkrone kall
+val mainScope = MainScope()
 
 fun main() {
     val container = document.createElement("div")
     document.body!!.appendChild(container)
 
-    val welcome = Welcome.create {
-        name = "Kotlin/JSfffff"
-    }
-    createRoot(container).render(welcome)
+    val app = App.create()
+    createRoot(container).render(app)
 }
