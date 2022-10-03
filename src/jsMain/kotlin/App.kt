@@ -9,6 +9,9 @@ import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
 import react.router.dom.Link
+import seasons.Season
+import seasons.SeasonEdit
+import seasons.Seasons
 
 val App = FC<Props> {
     // https://github.com/JetBrains/kotlin-wrappers/blob/master/kotlin-react-router-dom/README.md
@@ -33,6 +36,18 @@ val App = FC<Props> {
                         +"Ny person"
                     }
                 }
+                li {
+                    Link {
+                        to = "/seasons/new"
+                        +"Ny sesong"
+                    }
+                }
+                li {
+                    Link {
+                        to = "/seasons"
+                        +"Sesonger"
+                    }
+                }
             }
         }
         Routes {
@@ -47,6 +62,22 @@ val App = FC<Props> {
             Route {
                 path = "/persons"
                 element = createElement(Persons)
+            }
+            Route {
+                path = "/seasons/:id/edit"
+                element = createElement(SeasonEdit)
+            }
+            Route {
+                path = "/seasons/new"
+                element = createElement(SeasonEdit)
+            }
+            Route {
+                path = "/seasons/:id"
+                element = createElement(Season)
+            }
+            Route {
+                path = "/seasons"
+                element = createElement(Seasons)
             }
             Route {
                 path = "/"

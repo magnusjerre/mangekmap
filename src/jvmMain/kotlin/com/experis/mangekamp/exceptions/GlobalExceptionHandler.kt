@@ -21,8 +21,13 @@ class GlobalExceptionHandler {
             else -> GenericExceptionResponse(exception.message ?: "null")
         }
     }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(BadRequestException::class)
+    fun handleBadRequestException(request: HttpServletRequest?, exception: BadRequestException) = GenericExceptionResponse(exception.message ?: "null")
 }
 
 class GenericExceptionResponse(val message: String)
 class ResourceNotFoundException(message: String) : Exception(message)
 class InvalidPropertyException(message: String) : Exception(message)
+class BadRequestException(message: String) : Exception(message)
