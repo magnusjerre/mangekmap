@@ -19,6 +19,7 @@ import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h3
 import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
+import react.router.dom.Link
 import react.router.useParams
 import react.useEffectOnce
 import react.useState
@@ -63,8 +64,9 @@ val EventOverview = FC<Props> {
         }
 
         if (isAuthenticated) {
-            p {
-                +"Autentisert og logget inn"
+            Link {
+                to = "/events/$eventId/participants/addremove"
+                +"Legg til/fjern deltakere"
             }
         } else {
             p {

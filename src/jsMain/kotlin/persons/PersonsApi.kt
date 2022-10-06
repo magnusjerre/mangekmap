@@ -53,8 +53,8 @@ suspend fun putPerson(person: PersonDto): PersonDto {
 
 // Kommentar for egen del: Var nødt til å ta inn kotlinx-json greier og bruke
 // Json.decodeFromString for at det skulle fungere
-suspend fun fetchPersons(): List<PersonDto> {
-    val response = kotlinx.browser.window.fetch(personApiBasePath).await()
+suspend fun fetchPersons(includeRetired: Boolean = false): List<PersonDto> {
+    val response = kotlinx.browser.window.fetch("$personApiBasePath?includeRetired=$includeRetired").await()
     return if (response.ok) {
         val jsonContent: String = response.text().await()
         val parsed = Json.decodeFromString<List<PersonDto>>(jsonContent)

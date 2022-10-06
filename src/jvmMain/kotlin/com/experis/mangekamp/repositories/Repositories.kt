@@ -28,7 +28,9 @@ interface ParticipantRepository : JpaRepository<Participant, Long> {
 interface SeasonRepository : JpaRepository<Season, Long>
 
 @Repository
-interface PersonRepository : JpaRepository<Person, Long>
+interface PersonRepository : JpaRepository<Person, Long> {
+    fun findAllByRetired(retired: Boolean): List<Person>
+}
 
 @Repository
 interface AdminUserRepository : JpaRepository<AdminUser, Long> {

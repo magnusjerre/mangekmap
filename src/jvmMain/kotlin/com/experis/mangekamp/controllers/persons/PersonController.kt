@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
@@ -19,14 +20,21 @@ class PersonController(
     private val personRepository: PersonRepository
 ) {
     @GetMapping
-    fun getPersons(): List<PersonDto> = personRepository.findAll().map {
-        PersonDto(
-            name = it.name,
-            email = it.email,
-            gender = if (it.gender == Gender.MALE) GenderDto.MALE else GenderDto.FEMALE,
-            retired = it.retired,
-            id = it.id
-        )
+    fun getPersons(@RequestParam includeRetired: Boolean? = false): List<PersonDto> {
+        val persons = if (includeRetired == true)
+            personRepository.findAll()
+        else
+            personRepository.findAllByRetired(false)
+
+        return persons.map {
+            PersonDto(
+                name = it.name,
+                email = it.email,
+                gender = if (it.gender == Gender.MALE) GenderDto.MALE else GenderDto.FEMALE,
+                retired = it.retired,
+                id = it.id
+            )
+        }
     }
 
     @GetMapping("/{id}")

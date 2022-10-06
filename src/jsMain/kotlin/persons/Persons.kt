@@ -26,7 +26,7 @@ val Persons = FC<Props> {
 
     useEffectOnce {
         mainScope.launch {
-            val personsResponse = fetchPersons()
+            val personsResponse = fetchPersons(includeRetired = true)
             persons = personsResponse
         }
     }

@@ -51,6 +51,7 @@ class EventController(
     }
     ).toDto()
 
+    @Transactional
     @PatchMapping("{eventId}/participants")
     fun patchParticipants(@PathVariable eventId: Long, @RequestBody body: List<ParticipantPostDto>): EventDto {
         val event = eventRepository.findByIdOrNull(eventId)
@@ -59,6 +60,7 @@ class EventController(
         val existingPersonsIds = event.participants.map { it.id.person.id }.toSet()
         val newPersonsIds = requestPersonsIds - existingPersonsIds
         val patchExistingPersonIds = requestPersonsIds - newPersonsIds
+        val removeExistingPersonIds = (existingPersonsIds - requestPersonsIds).filterNotNull()
 
         val personsToAddAsParticipants = personRepository.findAllById(newPersonsIds)
         val newParticipants = personsToAddAsParticipants.map { np ->
@@ -76,7 +78,6 @@ class EventController(
         // Må lagres utenfor event-objektet, vil ellers kaste en javax.persistence.EntityNotFoundException:
         // Unable to find com.experis.mangekamp.models.Participant with id com.experis.mangekamp.models.ParticipantId@29f78030
         participantRepository.saveAllAndFlush(newParticipants)
-
         // Oppdater eksisterende particpants
         event.participants.filter { patchExistingPersonIds.contains(it.id.person.id) }.forEach {
             val patchedParticipant = body.find { pp -> pp.personId == it.id.person.id }!!
@@ -85,8 +86,12 @@ class EventController(
         }
         eventRepository.save(event)
 
+        participantRepository.deleteByIdEventIdAndIdPersonIdIn(eventId, removeExistingPersonIds.toList())
+        participantRepository.flush()
+
         // Legger til de nye deltakerne slik at returdtoen inneholder disse også
         event.participants += newParticipants
+        event.participants = event.participants.filterNot { removeExistingPersonIds.contains(it.id.person.id) }
 
         return event.toDto(includeParticipants = true)
     }
