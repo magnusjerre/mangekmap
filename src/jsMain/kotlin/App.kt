@@ -1,3 +1,4 @@
+import events.EventOverview
 import persons.PersonEdit
 import react.FC
 import react.Props
@@ -48,6 +49,12 @@ val App = FC<Props> {
                         +"Sesonger"
                     }
                 }
+                li {
+                    Link {
+                        to = "/events/4"
+                        +"Event 4"
+                    }
+                }
             }
         }
         Routes {
@@ -78,6 +85,10 @@ val App = FC<Props> {
             Route {
                 path = "/seasons"
                 element = createElement(Seasons)
+            }
+            Route {
+                path = "/events/:id"
+                element = createElement(EventOverview)
             }
             Route {
                 path = "/"

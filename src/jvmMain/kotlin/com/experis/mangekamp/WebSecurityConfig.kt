@@ -38,7 +38,8 @@ class WebSecurityConfig {
                 "/resources/js/**",
                 "/public/**",
                 "/index*",
-                "/index.html"
+                "/index.html",
+                "/"
             )
             .permitAll()
             .anyRequest().authenticated()
