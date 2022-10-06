@@ -26,6 +26,7 @@ import react.FC
 import react.Props
 import react.dom.html.ReactHTML.h1
 import react.key
+import react.router.dom.Link
 import react.router.useNavigate
 import react.router.useParams
 import react.useEffectOnce
@@ -66,6 +67,11 @@ val EventAddParticipants = FC<Props> { props ->
         }
 
         h1 { +"Legg til/fjern deltakere for: $eventName" }
+
+        Link {
+            to = "/events/$eventId"
+            +"Tilbake"
+        }
 
         TableContainer {
             TableHead {

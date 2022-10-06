@@ -4,12 +4,16 @@ import csstype.em
 import dto.SeasonDto
 import kotlinx.coroutines.launch
 import mainScope
+import mui.material.List as MuiList
+import mui.material.ListItem
 import mui.system.Box
 import mui.system.sx
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.h1
 import react.dom.html.ReactHTML.h2
+import react.key
+import react.router.dom.Link
 import react.router.useParams
 import react.useEffectOnce
 import react.useState
@@ -39,6 +43,18 @@ val Season = FC<Props> {
 
         h2 {
             +"${season.startYear}"
+        }
+
+        MuiList {
+            for (event in season.events) {
+                ListItem {
+                    key = "${event.id}"
+                    Link {
+                        to = "/events/${event.id}"
+                        +event.title
+                    }
+                }
+            }
         }
     }
 }
