@@ -1,4 +1,5 @@
 import events.EventAddParticipants
+import events.EventEditResults
 import events.EventOverview
 import persons.PersonEdit
 import react.FC
@@ -94,6 +95,10 @@ val App = FC<Props> {
             Route {
                 path = "/events/:id/participants/addremove"
                 element = createElement(EventAddParticipants)
+            }
+            Route {
+                path = "/events/:id/participants/editresults"
+                element = createElement(EventEditResults)
             }
             Route {
                 path = "/"

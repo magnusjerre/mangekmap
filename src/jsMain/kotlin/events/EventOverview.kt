@@ -68,6 +68,10 @@ val EventOverview = FC<Props> {
                 to = "/events/$eventId/participants/addremove"
                 +"Legg til/fjern deltakere"
             }
+            Link {
+                to = "/events/$eventId/participants/editresults"
+                +"Rediger resultater"
+            }
         } else {
             p {
                 +"Ikke logget inn"

@@ -14,7 +14,7 @@ class EventDto(
 )
 
 @Serializable
-class ParticipantDto(
+data class ParticipantDto(
     @Required
     val rank: Int,
     val score: String,
