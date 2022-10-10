@@ -77,6 +77,7 @@ kotlin {
             dependencies {
                 implementation("org.springframework.boot:spring-boot-starter-test")
                 implementation("org.springframework.security:spring-security-test")
+                implementation("io.kotest:kotest-assertions-core:5.5.0")
             }
         }
         val jsMain by getting {

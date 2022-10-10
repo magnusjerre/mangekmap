@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS public.event
     venue character varying(255) COLLATE pg_catalog."default",
     category_id bigint,
     season_id bigint,
+    is_team_based boolean NOT NULL,
     CONSTRAINT event_pkey PRIMARY KEY (id),
     CONSTRAINT fk751x8cp2x1h1fay38u2p5gpkr FOREIGN KEY (category_id)
         REFERENCES public.category (id) MATCH SIMPLE

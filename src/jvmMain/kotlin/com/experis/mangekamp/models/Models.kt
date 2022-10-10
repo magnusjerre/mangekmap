@@ -23,6 +23,7 @@ class Event(
     var venue: String,
     @OneToMany(mappedBy = "id.event")
     var participants: Collection<Participant>,
+    var isTeamBased: Boolean = false,
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null,
@@ -41,6 +42,8 @@ class Category(
 ) {
     @OneToMany(mappedBy = "category")
     lateinit var events: Collection<Event>
+
+    override fun toString(): String = "${Category::class.simpleName}(id=$id, name=$name)"
 }
 
 @Entity
