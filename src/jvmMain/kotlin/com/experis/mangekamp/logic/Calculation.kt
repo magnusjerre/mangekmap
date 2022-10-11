@@ -7,19 +7,22 @@ import java.lang.Integer.max
 import java.lang.Integer.min
 
 fun List<Event>.calculateSeason(
+    gender: Gender,
     penaltyPoints: (Gender) -> Int = { if (it == Gender.MALE) 16 else 8 },
     expectedMangekjemperEvents: Int,
     mangekjemperRequirement: (SeasonParticipant) -> Boolean
 ): List<SeasonParticipant> {
-    val participants = toSeasonParticipants()
+    val participants = toSeasonParticipants(gender)
     participants.calculateMangekjemperRankings(mangekjemperRequirement)
     participants.forEach { it.calculateSeasonPoints(penaltyPoints, expectedMangekjemperEvents, mangekjemperRequirement) }
     participants.calculateSeasonRank(expectedMangekjemperEvents)
     return participants.sorted()
 }
 
-private fun List<Event>.toSeasonParticipants(): List<SeasonParticipant> =
-    flatMap { it.participants }.groupBy { it.id.person }.map { (person, personParticipations) ->
+private fun List<Event>.toSeasonParticipants(gender: Gender): List<SeasonParticipant> = flatMap { it.participants }
+        .filter { it.id.person.gender == gender }
+        .groupBy { it.id.person }
+        .map { (person, personParticipations) ->
         SeasonParticipant(
             personId = person.id!!.toLong(),
             personName = person.name,

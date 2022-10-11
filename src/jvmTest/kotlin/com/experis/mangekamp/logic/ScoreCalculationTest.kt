@@ -352,7 +352,7 @@ class ScoreCalculationTest {
         val events = seasonEvents.toEvents()
         events.setupParticipants()
 
-        val result = events.calculateSeason(expectedMangekjemperEvents = 8) { it.events.isMangekjemper()}
+        val result = events.calculateSeason(gender = Gender.MALE, expectedMangekjemperEvents = 8) { it.events.isMangekjemper()}
         val winner = result[0]
         winner.shouldHave(name = "Donald Duck", seasonRank = 1, seasonPoints = 10, mangekjemperStatus = true)
         winner.shouldHaveMangekjemperRanks(listOf(1.b, 1.k, 1.b, 2.t, 1.k, 2.t, 1.t, 1.b, 1.b), events)
