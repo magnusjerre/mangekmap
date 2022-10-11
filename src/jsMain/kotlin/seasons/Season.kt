@@ -1,7 +1,9 @@
 package seasons
 
 import csstype.em
+import dto.GenderDto
 import dto.SeasonDto
+import dto.SeasonParticipantDto
 import kotlinx.coroutines.launch
 import mainScope
 import mui.material.List as MuiList
@@ -20,12 +22,17 @@ import react.useState
 
 val Season = FC<Props> {
     val seasonId = useParams()["id"]!!.toLong()
-    var season by useState(SeasonDto(emptyList(), "Unknown", 0))
+    var season by useState(SeasonDto(emptyList(), emptyList() , "Unknown", 0))
+    var male by useState<List<SeasonParticipantDto>>(emptyList())
+    var female by useState<List<SeasonParticipantDto>>(emptyList())
 
     useEffectOnce {
         mainScope.launch {
             try {
-                season = getSeason(seasonId, true)
+                val season1 = getSeason(seasonId, true)
+                season = season1
+                male = season1.participants.filter { it.gender == GenderDto.MALE }
+                female = season1.participants.filter { it.gender == GenderDto.FEMALE }
             } catch (e: Exception) {
                 console.log(e)
             }
@@ -51,10 +58,26 @@ val Season = FC<Props> {
                     key = "${event.id}"
                     Link {
                         to = "/events/${event.id}"
-                        +event.title
+                        +event.name
                     }
                 }
             }
+        }
+
+        SeasonResultTable {
+            events = season.events
+            participants = female
+        }
+
+        Box {
+            sx {
+                marginTop = 2.em
+            }
+        }
+
+        SeasonResultTable {
+            events = season.events
+            participants = male
         }
     }
 }

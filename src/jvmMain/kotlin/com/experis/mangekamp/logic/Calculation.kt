@@ -9,8 +9,8 @@ import java.lang.Integer.min
 fun List<Event>.calculateSeason(
     gender: Gender,
     penaltyPoints: (Gender) -> Int = { if (it == Gender.MALE) 16 else 8 },
-    expectedMangekjemperEvents: Int,
-    mangekjemperRequirement: (SeasonParticipant) -> Boolean
+    expectedMangekjemperEvents: Int = 8,
+    mangekjemperRequirement: (SeasonParticipant) -> Boolean = { it.events.isMangekjemper() }
 ): List<SeasonParticipant> {
     val participants = toSeasonParticipants(gender)
     participants.calculateMangekjemperRankings(mangekjemperRequirement)
@@ -43,6 +43,7 @@ private fun List<Event>.toSeasonParticipants(gender: Gender): List<SeasonPartici
 
 fun List<SeasonParticipant>.calculateMangekjemperRankings(mangekjemperRequirement: (SeasonParticipant) -> Boolean) {
     val mangekjempere = this.filter { mangekjemperRequirement(it) }
+    mangekjempere.forEach { it.isMangekjemper = true }
     val eventIds = mangekjempere.flatMap { it.events }.map { it.eventId }.distinct()
 
     for (eventId in eventIds) {
