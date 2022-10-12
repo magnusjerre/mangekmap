@@ -11,6 +11,7 @@ class EventDto(
     val venue: String,
     val participants: Collection<ParticipantDto>,
     val id: Long,
+    val seasonId: Long,
 )
 
 @Serializable
@@ -21,12 +22,12 @@ data class ParticipantDto(
     val name: String,
     val gender: GenderDto,
     val personId: Long,
-)  : Comparable<ParticipantDto> {
+) : Comparable<ParticipantDto> {
     override fun compareTo(other: ParticipantDto): Int = rank.compareTo(other.rank)
 }
 
 @Serializable
-class EventPostDto(
+data class EventPostDto(
     val date: String,
     val title: String,
     val categoryId: Long,

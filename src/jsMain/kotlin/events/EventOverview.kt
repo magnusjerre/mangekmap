@@ -63,10 +63,21 @@ val EventOverview = FC<Props> {
             span { +"Deltakere: $numberOfMen menn og $numberOfWomen $womenText" }
         }
 
+        if (event != null) {
+            Link {
+                to = "/seasons/${event!!.seasonId}"
+                +"Tilbake til sesong"
+            }
+        }
+
         if (isAuthenticated) {
             Link {
                 to = "/events/$eventId/participants/addremove"
                 +"Legg til/fjern deltakere"
+            }
+            Link {
+                to = "/events/$eventId/edit"
+                +"Rediger øvelseinfo"
             }
             Link {
                 to = "/events/$eventId/participants/editresults"

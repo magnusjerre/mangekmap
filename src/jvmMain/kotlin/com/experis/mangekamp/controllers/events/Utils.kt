@@ -17,7 +17,8 @@ fun Event.toDto(includeParticipants: Boolean = true): EventDto = EventDto(
     category = category.toDto(),
     venue = venue,
     participants = if (includeParticipants) participants.map(Participant::toDto) else emptyList(),
-    id = id!!
+    id = id!!,
+    seasonId = season.id!!
 )
 
 fun Participant.toDto(): ParticipantDto = ParticipantDto(

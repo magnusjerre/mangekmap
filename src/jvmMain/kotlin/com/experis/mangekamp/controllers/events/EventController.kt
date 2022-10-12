@@ -10,6 +10,8 @@ import com.experis.mangekamp.repositories.PersonRepository
 import dto.EventDto
 import dto.EventPostDto
 import dto.ParticipantPostDto
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -50,6 +52,23 @@ class EventController(
             ?: throw ResourceNotFoundException("Category with id ${event.categoryId} not found")
     }
     ).toDto()
+
+    @PatchMapping("{id}")
+    fun patchEvent(@PathVariable id: Long, @RequestBody event: EventPostDto): EventDto {
+        val existingEvent =
+            eventRepository.findByIdOrNull(id) ?: throw ResourceNotFoundException("Event with id $id not found")
+        val category = if (event.categoryId == existingEvent.category.id)
+            existingEvent.category
+        else
+            categoryRepository.findByIdOrNull(event.categoryId) ?: throw ResourceNotFoundException("Cateogry with id ${event.categoryId} not found")
+
+        existingEvent.title = event.title
+        existingEvent.date = LocalDate.parse(event.date, DateTimeFormatter.ISO_DATE)
+        existingEvent.venue = event.venue
+        existingEvent.category = category
+
+        return eventRepository.save(existingEvent).toDto()
+    }
 
     @Transactional
     @PatchMapping("{eventId}/participants")

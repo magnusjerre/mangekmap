@@ -1,5 +1,7 @@
 package seasons
 
+import dto.EventDto
+import dto.EventPostDto
 import dto.SeasonDto
 import dto.SeasonPostDto
 import kotlinx.browser.window
@@ -64,9 +66,27 @@ suspend fun putSeason(id: Long, seasonDto: SeasonPostDto): SeasonDto {
 }
 
 suspend fun deleteSeason(id: Long) {
-    val result = window.fetch("$seasonsApiBasePath/$id", RequestInit(method = "DELETE",)).await()
+    val result = window.fetch("$seasonsApiBasePath/$id", RequestInit(method = "DELETE")).await()
 
     if (!result.ok) {
         throw Exception("Error deleting season: ${result.status}-${result.statusText}: ${result.text().await()}")
+    }
+}
+
+suspend fun postSeasonEvent(id: Long, event: EventPostDto) {
+    val result = window.fetch(
+        "$seasonsApiBasePath/$id/events",
+        RequestInit(
+            method = "POST",
+            body = Json.encodeToJsonElement(event),
+            headers = Headers().apply { append("Content-Type", "application/json;charset=UTF-8") })
+    ).await()
+
+    if (result.ok) {
+        return Json.decodeFromString(result.text().await())
+    } else {
+        throw Exception(
+            "Error posting event: ${result.status}-${result.statusText}: ${result.text().await()}"
+        )
     }
 }

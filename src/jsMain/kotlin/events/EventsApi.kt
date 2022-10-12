@@ -1,6 +1,7 @@
 package events
 
 import dto.EventDto
+import dto.EventPostDto
 import dto.ParticipantPostDto
 import kotlinx.browser.window
 import kotlinx.coroutines.await
@@ -26,6 +27,20 @@ suspend fun patchParticipants(id: Long, participants: List<ParticipantPostDto>):
     val response = window.fetch("$eventsApiBasePath/$id/participants", RequestInit(
         method = "PATCH",
         body = Json.encodeToJsonElement(participants),
+        headers = Headers().apply { append("Content-Type", "application/json;charset=UTF-8") }
+    )).await()
+
+    if (response.ok) {
+        return Json.decodeFromString(response.text().await())
+    } else {
+        throw Exception("Oh no")
+    }
+}
+
+suspend fun patchEvent(id: Long, event: EventPostDto): EventDto {
+    val response = window.fetch("$eventsApiBasePath/$id", RequestInit(
+        method = "PATCH",
+        body = Json.encodeToJsonElement(event),
         headers = Headers().apply { append("Content-Type", "application/json;charset=UTF-8") }
     )).await()
 
