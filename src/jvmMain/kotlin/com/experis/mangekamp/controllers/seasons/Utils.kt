@@ -23,7 +23,7 @@ fun Season.toDto(excludeEvents: Boolean = false): SeasonDto {
     val femalesResult = events.calculateSeason(gender = Gender.FEMALE)
 
     return SeasonDto(
-        events = if (excludeEvents) emptyList() else events.map(Event::toDtoSimple),
+        events = if (excludeEvents) emptyList() else events.sortedBy { it.date }.map(Event::toDtoSimple),
         participants = (malesResult + femalesResult).map(SeasonParticipant::toDto),
         name = name,
         startYear = startYear,
