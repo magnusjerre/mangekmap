@@ -95,7 +95,11 @@ val EventEdit = FC<Props> {
             asDynamic().spacing = 3
 
             Link {
-                to = "/events/$eventId"
+                to = if (eventId != null) {
+                    "/events/$eventId"
+                } else {
+                    "/seasons/$seasonId"
+                }
                 +"Tilbake til øvelse"
             }
 
@@ -201,7 +205,14 @@ val EventEdit = FC<Props> {
             Button {
                 variant = ButtonVariant.outlined
                 onClick = {
-                    navigate("/events/$eventId")
+                    console.log("seasonId", seasonId.toString().toLong())
+                    console.log("events", eventId)
+                    console.log("params", params)
+                    if (eventId != null) {
+                        navigate("/events/$eventId")
+                    } else {
+                        navigate("/seasons/$seasonId")
+                    }
                 }
                 +"Avbryt"
             }
