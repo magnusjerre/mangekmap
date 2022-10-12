@@ -48,10 +48,6 @@ val Season = FC<Props> {
             +season.name
         }
 
-        h2 {
-            +"${season.startYear}"
-        }
-
         MuiList {
             for (event in season.events) {
                 ListItem {
@@ -62,6 +58,11 @@ val Season = FC<Props> {
                     }
                 }
             }
+        }
+
+        Link {
+            to = "/seasons/$seasonId/events"
+            +"Legg til ny øvelse"
         }
 
         SeasonResultTable {

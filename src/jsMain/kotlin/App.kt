@@ -86,6 +86,10 @@ val App = FC<Props> {
                 element = createElement(Season)
             }
             Route {
+                path = "/seasons/:seasonId/events"
+                element = createElement(EventEdit)
+            }
+            Route {
                 path = "/seasons"
                 element = createElement(Seasons)
             }

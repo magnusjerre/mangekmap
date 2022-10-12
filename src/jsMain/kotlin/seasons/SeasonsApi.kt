@@ -73,7 +73,7 @@ suspend fun deleteSeason(id: Long) {
     }
 }
 
-suspend fun postSeasonEvent(id: Long, event: EventPostDto) {
+suspend fun postSeasonEvent(id: Long, event: EventPostDto): EventDto {
     val result = window.fetch(
         "$seasonsApiBasePath/$id/events",
         RequestInit(

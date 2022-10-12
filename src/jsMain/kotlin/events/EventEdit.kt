@@ -42,8 +42,8 @@ import seasons.postSeasonEvent
 
 val EventEdit = FC<Props> {
     val params = useParams()
-    val seasonId = params["seasonId"]?.toLong()
-    val eventId = params["eventId"]?.toLong()
+    var seasonId by useState(params["seasonId"]?.toLong())
+    var eventId by useState(params["eventId"]?.toLong())
     var categories by useState<List<CategoryDto>>(emptyList())
     var event by useState(EventPostDto(date = "", title = "", categoryId = 0, venue = ""))
     var showSuccess by useState(false)
@@ -73,6 +73,9 @@ val EventEdit = FC<Props> {
                     venue = it.venue
                 )
             } ?: EventPostDto(date = "", title = "", categoryId = categoriesDto.first().id, venue = "")
+            if (eventDto != null) {
+                seasonId = eventDto.seasonId
+            }
         }
     }
 
@@ -116,7 +119,7 @@ val EventEdit = FC<Props> {
                     onChange = {
                         event = event.copy(venue = it.target.asDynamic().value as String)
                     }
-                    value = event.title
+                    value = event.venue
                 }
             }
 
@@ -178,7 +181,9 @@ val EventEdit = FC<Props> {
                     mainScope.launch {
                         loading = true
                         if (seasonId != null) {
-                            postSeasonEvent(seasonId, event)
+                            val eventDto = postSeasonEvent(seasonId!!, event)
+                            eventId = eventDto.id
+                            event = eventDto.let { EventPostDto(date = it.date, title = it.title, categoryId = it.category.id, venue = it.venue) }
                         } else {
                             patchEvent(eventId!!, event)
                         }

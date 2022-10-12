@@ -2,8 +2,11 @@ package seasons
 
 import csstype.Color
 import csstype.Display
+import csstype.FontStyle
 import csstype.FontWeight
+import csstype.None
 import csstype.TextAlign
+import csstype.TextDecoration
 import csstype.em
 import csstype.pc
 import csstype.px
@@ -26,6 +29,7 @@ import react.Props
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
 import react.key
+import react.router.dom.Link
 
 external interface SeasonResultTableProps : Props {
     var events: List<SimpleEventDto>
@@ -67,10 +71,6 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
     val header = props.participants.firstOrNull()?.gender?.let { if (it == GenderDto.MALE) "Menn" else "Kvinner" } ?: ""
 
     Box {
-        sx {
-            width = 1280.px
-        }
-
         h2 { +header }
         TableContainer {
             TableHead {
@@ -88,9 +88,17 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
                             sx {
                                 backgroundColor = Color(event.categoryDto.color)
                                 color = Color("white")
+                                minWidth = 4.em
                             }
                             key = "${event.id}"
-                            +event.name
+                            Link {
+                                to = "/events/${event.id}"
+                                css {
+                                    textDecoration = None.none
+                                    color = Color("white")
+                                }
+                                +event.name
+                            }
                         }
                     }
                     TableCell { +"Poeng" }
