@@ -4,7 +4,6 @@ import authentication.getIsAuthenticated
 import categories.getCategories
 import csstype.Color
 import csstype.FontWeight
-import csstype.HtmlAttributes
 import csstype.em
 import dto.CategoryDto
 import dto.GenderDto
@@ -13,19 +12,13 @@ import dto.SeasonParticipantDto
 import emotion.react.css
 import kotlinx.coroutines.launch
 import mainScope
-import mui.material.List as MuiList
-import mui.material.ListItem
 import mui.system.Box
 import mui.system.Stack
 import mui.system.sx
 import react.FC
 import react.Props
-import react.dom.html.ReactHTML
-import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.h1
-import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
-import react.key
 import react.router.dom.Link
 import react.router.useParams
 import react.useEffectOnce
@@ -64,18 +57,6 @@ val Season = FC<Props> {
             +season.name
         }
 
-        MuiList {
-            for (event in season.events) {
-                ListItem {
-                    key = "${event.id}"
-                    Link {
-                        to = "/events/${event.id}"
-                        +event.name
-                    }
-                }
-            }
-        }
-
         Box {
             sx {
                 marginTop = 2.em
@@ -86,7 +67,7 @@ val Season = FC<Props> {
                     css {
                         color = Color("white")
                         fontWeight = FontWeight.bold
-                        fontSize = 1.2.em
+                        fontSize = 0.75.em
                         backgroundColor = Color(category.color)
                         padding = 1.em
                         marginRight = 0.25.em
@@ -98,8 +79,8 @@ val Season = FC<Props> {
 
         Stack {
             Link {
-                to = "/seasons"
-                +"Tilbake til sesonger"
+                to = "/"
+                +"Tilbake til forside"
             }
 
             if (isAuthenticated) {

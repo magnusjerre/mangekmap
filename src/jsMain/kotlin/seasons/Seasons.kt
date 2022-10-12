@@ -1,5 +1,6 @@
 package seasons
 
+import authentication.getIsAuthenticated
 import csstype.px
 import dto.SeasonDto
 import kotlinx.coroutines.launch
@@ -22,17 +23,15 @@ import react.useState
 val Seasons = FC<Props> {
     var seasons by useState<List<SeasonDto>>(emptyList())
     var fetching by useState(false)
+    var isAuthenticated by useState(false)
 
     useEffectOnce {
         mainScope.launch {
             fetching = true
+            isAuthenticated = getIsAuthenticated()
             seasons = getSeasons(excludeEvents = true)
             fetching = false
         }
-    }
-
-    h1 {
-        +"Sesonger"
     }
 
     TableContainer {
@@ -47,7 +46,9 @@ val Seasons = FC<Props> {
                 TableRow {
                     TableCell { +"Navn" }
                     TableCell { +"Start år" }
-                    TableCell { +"Rediger" }
+                    if (isAuthenticated) {
+                        TableCell { +"Rediger" }
+                    }
                 }
             }
 
@@ -66,10 +67,12 @@ val Seasons = FC<Props> {
                             }
                         }
                         TableCell { +"${season.startYear}" }
-                        TableCell {
-                            Link {
-                                to = "/seasons/${season.id}/edit"
-                                +"Rediger"
+                        if (isAuthenticated) {
+                            TableCell {
+                                Link {
+                                    to = "/seasons/${season.id}/edit"
+                                    +"Rediger"
+                                }
                             }
                         }
                     }

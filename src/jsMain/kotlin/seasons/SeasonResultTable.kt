@@ -16,6 +16,7 @@ import dto.SimpleEventDto
 import emotion.react.css
 import emotion.styled.styled
 import kotlinx.js.jso
+import mui.material.Table
 import mui.material.TableBody
 import mui.material.TableCell
 import mui.material.TableCellProps
@@ -73,63 +74,66 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
     Box {
         h2 { +header }
         TableContainer {
-            TableHead {
-                TableRow {
-                    TableCell { +"Plassering" }
-                    TableCell {
-                        sx {
-                            width = 150.px
-                        }
-                        +"Navn"
-                    }
-                    TableCell { +"#Øvelser" }
-                    for (event in props.events) {
+            Table {
+                TableHead {
+                    TableRow {
+                        TableCell { +"Plassering" }
                         TableCell {
                             sx {
-                                backgroundColor = Color(event.categoryDto.color)
-                                color = Color("white")
-                                minWidth = 4.em
+                                width = 150.px
                             }
-                            key = "${event.id}"
-                            Link {
-                                to = "/events/${event.id}"
-                                css {
-                                    textDecoration = None.none
-                                    color = Color("white")
-                                }
-                                +event.name
-                            }
+                            +"Navn"
                         }
-                    }
-                    TableCell { +"Poeng" }
-                    TableCell { +"Mangekjemper?" }
-                }
-            }
-
-            TableBody {
-                for (participant in props.participants) {
-                    TableRow {
-                        key = "${participant.personId}"
-                        CenteredTableCell {
-                            RankElement {
-                                rank = participant.seasonRank
-                            }
-                        }
-                        TableCell { +participant.name }
-                        CenteredTableCell { +"${participant.results.size}" }
+                        TableCell { +"#Øvelser" }
                         for (event in props.events) {
-                            CenteredTableCell {
-                                val result = participant.results.find { it.eventId == event.id }?.prettyResult() ?: ""
-                                +result
+                            TableCell {
+                                sx {
+                                    backgroundColor = Color(event.categoryDto.color)
+                                    color = Color("white")
+                                    minWidth = 4.em
+                                }
+                                key = "${event.id}"
+                                Link {
+                                    to = "/events/${event.id}"
+                                    css {
+                                        textDecoration = None.none
+                                        color = Color("white")
+                                    }
+                                    +event.name
+                                }
                             }
                         }
-                        CenteredTableCell { +"${participant.seasonPoints}" }
-                        CenteredTableCell {
-                            if (participant.isMangekjemper)
-                                +"✔"
-                             else
-                                +"\uD83D\uDEAB"
+                        TableCell { +"Poeng" }
+                        TableCell { +"Mangekjemper?" }
+                    }
+                }
 
+                TableBody {
+                    for (participant in props.participants) {
+                        TableRow {
+                            key = "${participant.personId}"
+                            CenteredTableCell {
+                                RankElement {
+                                    rank = participant.seasonRank
+                                }
+                            }
+                            TableCell { +participant.name }
+                            CenteredTableCell { +"${participant.results.size}" }
+                            for (event in props.events) {
+                                CenteredTableCell {
+                                    val result =
+                                        participant.results.find { it.eventId == event.id }?.prettyResult() ?: ""
+                                    +result
+                                }
+                            }
+                            CenteredTableCell { +"${participant.seasonPoints}" }
+                            CenteredTableCell {
+                                if (participant.isMangekjemper)
+                                    +"✔"
+                                else
+                                    +"\uD83D\uDEAB"
+
+                            }
                         }
                     }
                 }

@@ -6,13 +6,9 @@ import persons.PersonEdit
 import react.FC
 import react.Props
 import react.createElement
-import react.dom.html.ReactHTML.div
-import react.dom.html.ReactHTML.li
-import react.dom.html.ReactHTML.ul
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
-import react.router.dom.Link
 import seasons.Season
 import seasons.SeasonEdit
 import seasons.Seasons
@@ -20,46 +16,6 @@ import seasons.Seasons
 val App = FC<Props> {
     // https://github.com/JetBrains/kotlin-wrappers/blob/master/kotlin-react-router-dom/README.md
     HashRouter {
-        div {
-            ul {
-                li {
-                    Link {
-                        to = "/"
-                        +"Hjem"
-                    }
-                }
-                li {
-                    Link {
-                        to = "/persons"
-                        +"Personer"
-                    }
-                }
-                li {
-                    Link {
-                        to = "/persons/new"
-                        +"Ny person"
-                    }
-                }
-                li {
-                    Link {
-                        to = "/seasons/new"
-                        +"Ny sesong"
-                    }
-                }
-                li {
-                    Link {
-                        to = "/seasons"
-                        +"Sesonger"
-                    }
-                }
-                li {
-                    Link {
-                        to = "/events/4"
-                        +"Event 4"
-                    }
-                }
-            }
-        }
         Routes {
             Route {
                 path = "/persons/new"

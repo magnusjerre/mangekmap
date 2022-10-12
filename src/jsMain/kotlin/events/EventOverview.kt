@@ -83,10 +83,6 @@ val EventOverview = FC<Props> {
                 to = "/events/$eventId/participants/editresults"
                 +"Rediger resultater"
             }
-        } else {
-            p {
-                +"Ikke logget inn"
-            }
         }
 
         h2 { +"Resultater" }
