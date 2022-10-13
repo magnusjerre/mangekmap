@@ -1,10 +1,12 @@
 package seasons
 
+import csstype.BorderStyle
 import csstype.Color
 import csstype.Display
 import csstype.FontStyle
 import csstype.FontWeight
 import csstype.None
+import csstype.Overflow
 import csstype.TextAlign
 import csstype.TextDecoration
 import csstype.em
@@ -16,6 +18,7 @@ import dto.SimpleEventDto
 import emotion.react.css
 import emotion.styled.styled
 import kotlinx.js.jso
+import mui.material.Size
 import mui.material.Table
 import mui.material.TableBody
 import mui.material.TableCell
@@ -74,7 +77,11 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
     Box {
         h2 { +header }
         TableContainer {
+            sx {
+                overflowX = Overflow.visible
+            }
             Table {
+                stickyHeader = true
                 TableHead {
                     TableRow {
                         TableCell { +"Plassering" }
@@ -85,6 +92,8 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
                             +"Navn"
                         }
                         TableCell { +"#Øvelser" }
+                        TableCell { +"Poeng" }
+                        TableCell { +"Mangekjemper?" }
                         for (event in props.events) {
                             TableCell {
                                 sx {
@@ -103,8 +112,6 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
                                 }
                             }
                         }
-                        TableCell { +"Poeng" }
-                        TableCell { +"Mangekjemper?" }
                     }
                 }
 
@@ -119,13 +126,6 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
                             }
                             TableCell { +participant.name }
                             CenteredTableCell { +"${participant.results.size}" }
-                            for (event in props.events) {
-                                CenteredTableCell {
-                                    val result =
-                                        participant.results.find { it.eventId == event.id }?.prettyResult() ?: ""
-                                    +result
-                                }
-                            }
                             CenteredTableCell { +"${participant.seasonPoints}" }
                             CenteredTableCell {
                                 if (participant.isMangekjemper)
@@ -134,6 +134,14 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
                                     +"\uD83D\uDEAB"
 
                             }
+                            for (event in props.events) {
+                                CenteredTableCell {
+                                    val result =
+                                        participant.results.find { it.eventId == event.id }?.prettyResult() ?: ""
+                                    +result
+                                }
+                            }
+
                         }
                     }
                 }

@@ -12,6 +12,7 @@ import mui.material.TableCell
 import mui.material.TableContainer
 import mui.material.TableHead
 import mui.material.TableRow
+import mui.material.Typography
 import mui.system.sx
 import react.FC
 import react.Props

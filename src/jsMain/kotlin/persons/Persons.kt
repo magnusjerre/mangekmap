@@ -1,3 +1,4 @@
+import csstype.em
 import csstype.px
 import dto.PersonDto
 import kotlinx.coroutines.launch
@@ -7,6 +8,7 @@ import mui.material.TableCell
 import mui.material.TableContainer
 import mui.material.TableHead
 import mui.material.TableRow
+import mui.system.Stack
 import mui.system.sx
 import persons.fetchPersons
 import react.FC
@@ -31,9 +33,15 @@ val Persons = FC<Props> {
         }
     }
 
-    Link {
-        to = "/persons/new"
-        +"Ny person"
+    Stack {
+        Link {
+            to = "/"
+            +"Tilbake til forside"
+        }
+        Link {
+            to = "/persons/new"
+            +"Ny person"
+        }
     }
 
     TableContainer {
