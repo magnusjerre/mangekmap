@@ -1,17 +1,22 @@
 package com.experis.mangekamp
 
 import com.experis.mangekamp.repositories.AdminUserRepository
+import javax.servlet.http.HttpServletRequest
+import javax.servlet.http.HttpServletResponse
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.AuthenticationFailureHandler
 import org.springframework.stereotype.Service
 
 
@@ -45,7 +50,19 @@ class WebSecurityConfig {
             .anyRequest().authenticated()
             .and()
             .formLogin()
+            .loginPage("/")
+            .loginProcessingUrl("/loginprocessingurl")
+            .successHandler { _, response, _ -> response!!.status = HttpStatus.OK.value() }
+            .failureHandler { _, response, _ -> response!!.status = HttpStatus.UNAUTHORIZED.value() }
             .permitAll()
+            .and()
+            .exceptionHandling()
+            .authenticationEntryPoint { _, response, exception ->
+                response!!.status = HttpStatus.FORBIDDEN.value()
+            }
+            .accessDeniedHandler { _, response, _ ->
+                response!!.status = HttpStatus.UNAUTHORIZED.value()
+            }
         return http.build()
     }
 }

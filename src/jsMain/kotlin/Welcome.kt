@@ -7,6 +7,7 @@ import emotion.react.css
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 import mui.material.ListItem
+import mui.material.Stack
 import mui.material.Typography
 import mui.material.styles.TypographyVariant
 import mui.system.sx
@@ -14,6 +15,7 @@ import react.ElementType
 import react.FC
 import react.Props
 import react.ReactNode
+import react.dom.html.ReactHTML.a
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ol
@@ -59,10 +61,25 @@ val Welcome = FC<WelcomeProps> { props ->
         +"Mangekampen"
     }
 
-    if (isAuthenticated) {
-        Link {
-            to = "/persons"
-            +"Deltakere"
+    Stack {
+        sx {
+            marginTop = 2.em
+        }
+
+        if (isAuthenticated) {
+            a {
+                href = "/logout"
+                +"Log ut"
+            }
+            Link {
+                to = "/persons"
+                +"Deltakere"
+            }
+        } else {
+            Link {
+                to = "/custom/login"
+                +"Til login"
+            }
         }
     }
 
