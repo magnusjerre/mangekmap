@@ -2,6 +2,7 @@ import events.EventAddParticipants
 import events.EventEdit
 import events.EventEditResults
 import events.EventOverview
+import login.ChangePassword
 import login.Login
 import mui.material.Typography
 import persons.PersonEdit
@@ -72,6 +73,10 @@ val App = FC<Props> {
                 Route {
                     path = "/custom/login"
                     element = createElement(Login)
+                }
+                Route {
+                    path = "/admin/changepassword"
+                    element = createElement(ChangePassword)
                 }
                 Route {
                     path = "/"

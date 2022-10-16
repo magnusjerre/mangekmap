@@ -96,7 +96,7 @@ class AdminUser(
     var passwordDigest: String,
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long?
+    var id: Long? = null
 )
 
 enum class Gender {
