@@ -18,8 +18,8 @@ external interface EventParticipantTableProps : Props {
 }
 
 val EventParticipantTable = FC<EventParticipantTableProps> { props ->
-    val participants = props.participants.sorted()
-    val isTeamBased = participants.first().teamNumber != null
+    val participants = props.participants//.sorted()
+    val isTeamBased = participants.firstOrNull()?.teamNumber != null
 
     TableContainer {
         Table {

@@ -50,3 +50,13 @@ suspend fun patchEvent(id: Long, event: EventPostDto): EventDto {
         throw Exception("Oh no")
     }
 }
+
+suspend fun deleteEvent(id: Long) {
+    val response = window.fetch("$eventsApiBasePath/$id", RequestInit(
+        method = "DELETE"
+    )).await()
+
+    if (!response.ok) {
+        throw Exception("oh no")
+    }
+}

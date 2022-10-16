@@ -130,4 +130,14 @@ class EventController(
 
         return eventRepository.findByIdOrNull(eventId)?.toDto(includeParticipants = true)!!
     }
+
+    @DeleteMapping("{eventId}")
+    @Transactional
+    fun deleteEvent(@PathVariable eventId: Long) {
+        val event = eventRepository.findByIdOrNull(eventId) ?: throw ResourceNotFoundException("Event with id $eventId not found")
+        participantRepository.deleteAll(event.participants)
+        eventRepository.flush()
+        eventRepository.deleteById(eventId)
+        eventRepository.flush()
+    }
 }

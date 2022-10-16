@@ -83,6 +83,10 @@ val EventOverview = FC<Props> {
                 to = "/events/$eventId/participants/editresults"
                 +"Rediger resultater"
             }
+            Link {
+                to = "/events/$eventId/delete"
+                +"Slett øvelse"
+            }
         }
 
         h2 { +"Resultater" }
