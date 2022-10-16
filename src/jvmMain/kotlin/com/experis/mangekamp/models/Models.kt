@@ -65,7 +65,7 @@ class ParticipantId(
 @Entity
 class Season(
     @OneToMany(mappedBy = "season")
-    var events: List<Event>,
+    var events: MutableList<Event>,
     var name: String,
     var startYear: Int,
     @Id

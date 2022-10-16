@@ -13,6 +13,7 @@ import org.springframework.stereotype.Repository
 @Repository
 interface EventRepository : JpaRepository<Event, Long> {
     fun findAllBySeasonId(seasonId: Long): List<Event>
+    fun findBySeasonIdAndTitle(seasonId: Long, name: String): Event?
 }
 
 @Repository
@@ -22,10 +23,14 @@ interface CategoryRepository : JpaRepository<Category, Long>
 interface ParticipantRepository : JpaRepository<Participant, Long> {
     @Modifying
     fun deleteByIdEventIdAndIdPersonIdIn(eventId: Long, personId: List<Long>): Long
+
+    fun existsByIdEventIdAndIdPersonName(eventId: Long, name: String): Boolean
 }
 
 @Repository
-interface SeasonRepository : JpaRepository<Season, Long>
+interface SeasonRepository : JpaRepository<Season, Long> {
+    fun findByName(name: String): Season?
+}
 
 @Repository
 interface PersonRepository : JpaRepository<Person, Long> {

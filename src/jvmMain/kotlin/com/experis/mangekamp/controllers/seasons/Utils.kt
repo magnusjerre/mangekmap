@@ -54,7 +54,7 @@ fun SeasonSimplifiedEvent.toDto(): EventResult = EventResult(
 )
 
 fun SeasonPostDto.toModel(): Season = Season(
-    events = emptyList(),
+    events = mutableListOf(),
     name = name,
     startYear = startYear
 )
