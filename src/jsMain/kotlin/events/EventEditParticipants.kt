@@ -89,6 +89,9 @@ val EventEditResults = FC<Props> {
             TableHead {
                 TableRow {
                     TableCell { +"Navn" }
+                    if (event?.isTeamBased == true) {
+                        TableCell { +"Lagnummer" }
+                    }
                     TableCell { +"Score" }
                     TableCell { +"Plassering" }
                 }
@@ -99,6 +102,28 @@ val EventEditResults = FC<Props> {
                     TableRow {
                         key = "${participant.personId}"
                         TableCell { +participant.name }
+                        if (event?.isTeamBased == true) {
+                            TableCell {
+                                TextField {
+                                    inputProps = jso {
+                                        type = InputType.number
+                                    }
+                                    variant = FormControlVariant.standard
+                                    asDynamic().InputProps = jso<InputBaseProps> {
+                                        value = participant.teamNumber
+                                        onChange = { changeEvent ->
+                                            men =
+                                                men.mapReplace(
+                                                    participant.copy(
+                                                        teamNumber = (changeEvent.target.asDynamic().value as String).toInt()
+                                                            .coerceIn(0, 1000)
+                                                    )
+                                                )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         TableCell {
                             TextField {
                                 variant = FormControlVariant.standard
@@ -143,6 +168,9 @@ val EventEditResults = FC<Props> {
                 TableRow {
                     TableCell { +"Navn" }
                     TableCell { +"Score" }
+                    if (event?.isTeamBased == true) {
+                        TableCell { +"Lagnummer" }
+                    }
                     TableCell { +"Plassering" }
                 }
             }
@@ -152,6 +180,28 @@ val EventEditResults = FC<Props> {
                     TableRow {
                         key = "${participant.personId}"
                         TableCell { +participant.name }
+                        if (event?.isTeamBased == true) {
+                            TableCell {
+                                TextField {
+                                    inputProps = jso {
+                                        type = InputType.number
+                                    }
+                                    variant = FormControlVariant.standard
+                                    asDynamic().InputProps = jso<InputBaseProps> {
+                                        value = participant.teamNumber
+                                        onChange = { changeEvent ->
+                                            women =
+                                                women.mapReplace(
+                                                    participant.copy(
+                                                        teamNumber = (changeEvent.target.asDynamic().value as String).toInt()
+                                                            .coerceIn(0, 1000)
+                                                    )
+                                                )
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         TableCell {
                             TextField {
                                 variant = FormControlVariant.standard
@@ -213,7 +263,8 @@ val EventEditResults = FC<Props> {
                             ParticipantPostDto(
                                 personId = it.personId,
                                 rank = it.rank,
-                                score = it.score
+                                score = it.score,
+                                teamNumber = it.teamNumber
                             )
                         })
                         performingPatch = false

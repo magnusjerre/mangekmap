@@ -16,6 +16,7 @@ fun Event.toDto(includeParticipants: Boolean = true): EventDto = EventDto(
     title = title,
     category = category.toDto(),
     venue = venue,
+    isTeamBased = isTeamBased,
     participants = if (includeParticipants) participants.map(Participant::toDto) else emptyList(),
     id = id!!,
     seasonId = season.id!!
@@ -26,7 +27,8 @@ fun Participant.toDto(): ParticipantDto = ParticipantDto(
     score = score,
     name = id.person.name,
     gender = id.person.gender.toDto(),
-    personId = id.person.id!!
+    personId = id.person.id!!,
+    teamNumber = teamNumber
 )
 
 fun EventPostDto.toModel(categoryIdMapper: (Long) -> Category): Event = Event(
@@ -34,5 +36,6 @@ fun EventPostDto.toModel(categoryIdMapper: (Long) -> Category): Event = Event(
     title = title,
     category = categoryIdMapper(categoryId),
     venue = venue,
+    isTeamBased = isTeamBased,
     participants = emptyList()
 )

@@ -1,0 +1,1 @@
+ALTER TABLE public.participant ADD COLUMN team_number integer;

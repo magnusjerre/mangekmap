@@ -42,7 +42,8 @@ private fun List<Event>.toSeasonParticipants(gender: Gender): List<SeasonPartici
                     actualRank = pt.rank,
                     mangekjemperRank = null,
                     eventId = pt.id.event.id!!,
-                    isTeamBased = pt.id.event.isTeamBased
+                    isTeamBased = pt.id.event.isTeamBased,
+                    teamNumber = pt.teamNumber
                 )
             })
     }
@@ -51,24 +52,52 @@ fun List<SeasonParticipant>.calculateMangekjemperRankings(mangekjemperRequiremen
     val mangekjempere = this.filter { mangekjemperRequirement(it) }
     mangekjempere.forEach { it.isMangekjemper = true }
     val eventIds = mangekjempere.flatMap { it.events }.map { it.eventId }.distinct()
+    var counter = 1
 
     for (eventId in eventIds) {
         val relevantMangekjempere = mangekjempere.filter { it.events.any { e -> e.eventId == eventId } }
-            .sortedBy { it.events.find { e -> e.eventId == eventId }!!.actualRank }
-        var rank = 1
-        var prev = relevantMangekjempere.first().events.find { e -> e.eventId == eventId }!!
-        prev.mangekjemperRank = rank++
-        val isTeamBased = prev.isTeamBased
-        for (i in 1 until relevantMangekjempere.count()) {
-            val curr = relevantMangekjempere[i].events.find { e -> e.eventId == eventId }!!
-            curr.mangekjemperRank = if (curr.actualRank == prev.actualRank) prev.mangekjemperRank else rank
-            if (!isTeamBased) {
-                rank++
-            } else if (curr.actualRank != prev.actualRank) {
-                rank++
+            .groupBy {
+                val ev = it.events.find { e -> e.eventId == eventId }!!
+                ev.teamNumber ?: counter++
             }
-            prev = curr
+            .toList()
+            .sortedBy { it.second.first().events.find { e -> e.eventId == eventId }!!.actualRank }
+
+        var teamRank = 1
+        var prevTeamEntry = relevantMangekjempere.first()
+        prevTeamEntry.second.forEach { it.events.find { e -> e.eventId == eventId }!!.mangekjemperRank = teamRank }
+        var prevActualRank = prevTeamEntry.second.first().events.find { e -> e.eventId == eventId}!!.actualRank
+        var prevMangekjemperRank = teamRank++
+        for (i in 1 until relevantMangekjempere.count()) {
+            val currentTeamEntry = relevantMangekjempere[i]
+            val relevantResults = currentTeamEntry.second.map { it.events.find { e -> e.eventId == eventId }!! }
+            if (prevActualRank == relevantResults.first().actualRank) {
+                relevantResults.forEach { it.mangekjemperRank = prevMangekjemperRank }
+            } else {
+                relevantResults.forEach { it.mangekjemperRank = teamRank }
+            }
+            teamRank++
+            prevTeamEntry = currentTeamEntry
+            prevActualRank = relevantResults.first().actualRank
+            prevMangekjemperRank = relevantResults.first().mangekjemperRank!!
         }
+
+
+//
+//        var rank = 1
+//        var prev = relevantMangekjempere.first().second.first().events.find { e -> e.eventId == eventId }!!
+//        prev.mangekjemperRank = rank++
+//        val isTeamBased = prev.isTeamBased
+//        for (i in 1 until relevantMangekjempere.count()) {
+//            val curr = relevantMangekjempere[i].events.find { e -> e.eventId == eventId }!!
+//            curr.mangekjemperRank = if (curr.actualRank == prev.actualRank) prev.mangekjemperRank else rank
+//            if (!isTeamBased) {
+//                rank++
+//            } else if (curr.actualRank != prev.actualRank) {
+//                rank++
+//            }
+//            prev = curr
+//        }
     }
 }
 
@@ -229,6 +258,7 @@ data class SeasonSimplifiedEvent(
     val eventId: Long,
     val actualRank: Int? = null,
     var mangekjemperRank: Int? = null,
+    val teamNumber: Int? = null,
     val isTeamBased: Boolean = false
 ) {
     override fun toString(): String {

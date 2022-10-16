@@ -66,6 +66,7 @@ class EventController(
         existingEvent.date = LocalDate.parse(event.date, DateTimeFormatter.ISO_DATE)
         existingEvent.venue = event.venue
         existingEvent.category = category
+        existingEvent.isTeamBased = event.isTeamBased
 
         return eventRepository.save(existingEvent).toDto()
     }
@@ -90,7 +91,8 @@ class EventController(
                     id = ParticipantId(
                         person = np,
                         event = event
-                    )
+                    ),
+                    teamNumber = pp.teamNumber,
                 )
             }
         }
@@ -102,6 +104,7 @@ class EventController(
             val patchedParticipant = body.find { pp -> pp.personId == it.id.person.id }!!
             it.rank = patchedParticipant.rank ?: it.rank
             it.score = patchedParticipant.score ?: it.score
+            it.teamNumber = patchedParticipant.teamNumber ?: it.teamNumber
         }
         eventRepository.save(event)
 

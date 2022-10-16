@@ -9,6 +9,7 @@ class EventDto(
     val title: String,
     val category: CategoryDto,
     val venue: String,
+    val isTeamBased: Boolean,
     val participants: Collection<ParticipantDto>,
     val id: Long,
     val seasonId: Long,
@@ -19,6 +20,7 @@ data class ParticipantDto(
     @Required
     val rank: Int,
     val score: String,
+    val teamNumber: Int?,
     val name: String,
     val gender: GenderDto,
     val personId: Long,
@@ -32,6 +34,7 @@ data class EventPostDto(
     val title: String,
     val categoryId: Long,
     val venue: String,
+    val isTeamBased: Boolean
 )
 
 @Serializable
@@ -39,4 +42,5 @@ class ParticipantPostDto(
     val personId: Long,
     val rank: Int? = null,
     val score: String? = null,
+    val teamNumber: Int? = null,
 )

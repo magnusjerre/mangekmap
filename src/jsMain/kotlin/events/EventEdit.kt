@@ -16,7 +16,11 @@ import mui.material.AlertColor
 import mui.material.AlertVariant
 import mui.material.Button
 import mui.material.ButtonVariant
+import mui.material.Checkbox
 import mui.material.FormControl
+import mui.material.FormControlLabel
+import mui.material.FormGroup
+import mui.material.FormLabel
 import mui.material.InputBaseProps
 import mui.material.InputLabel
 import mui.material.MenuItem
@@ -28,6 +32,7 @@ import mui.system.sx
 import react.FC
 import react.Props
 import react.ReactNode
+import react.create
 import react.dom.html.InputType
 import react.dom.html.ReactHTML.h1
 import react.dom.onChange
@@ -45,7 +50,7 @@ val EventEdit = FC<Props> {
     var seasonId by useState(params["seasonId"]?.toLong())
     var eventId by useState(params["eventId"]?.toLong())
     var categories by useState<List<CategoryDto>>(emptyList())
-    var event by useState(EventPostDto(date = "", title = "", categoryId = 0, venue = ""))
+    var event by useState(EventPostDto(date = "", title = "", categoryId = 0, venue = "", isTeamBased = false))
     var showSuccess by useState(false)
     var loading by useState(false)
     val navigate = useNavigate()
@@ -70,9 +75,10 @@ val EventEdit = FC<Props> {
                     date = it.date,
                     title = it.title,
                     categoryId = it.category.id,
-                    venue = it.venue
+                    venue = it.venue,
+                    isTeamBased = it.isTeamBased
                 )
-            } ?: EventPostDto(date = "", title = "", categoryId = categoriesDto.first().id, venue = "")
+            } ?: EventPostDto(date = "", title = "", categoryId = categoriesDto.first().id, venue = "", isTeamBased = false)
             if (eventDto != null) {
                 seasonId = eventDto.seasonId
             }
@@ -139,6 +145,26 @@ val EventEdit = FC<Props> {
                 }
             }
 
+            FormGroup {
+                sx {
+                    marginTop = 1.em
+                }
+                FormLabel {
+                    id = "isTeamBased"
+                    +"Lagøvelse"
+                }
+                FormControlLabel {
+                    control = Checkbox.create {
+                        checked = event.isTeamBased
+                        value = event.isTeamBased
+                        onChange = { _, _ ->
+                            event = event.copy(isTeamBased = !event.isTeamBased)
+                        }
+                    }
+                    label = ReactNode("Lagøvelse?")
+                }
+            }
+
             FormControl {
                 InputLabel {
                     id = "category-label"
@@ -184,10 +210,10 @@ val EventEdit = FC<Props> {
                 onClick = {
                     mainScope.launch {
                         loading = true
-                        if (seasonId != null) {
+                        if (seasonId != null && eventId == null) {
                             val eventDto = postSeasonEvent(seasonId!!, event)
                             eventId = eventDto.id
-                            event = eventDto.let { EventPostDto(date = it.date, title = it.title, categoryId = it.category.id, venue = it.venue) }
+                            event = eventDto.let { EventPostDto(date = it.date, title = it.title, categoryId = it.category.id, venue = it.venue, isTeamBased = it.isTeamBased) }
                         } else {
                             patchEvent(eventId!!, event)
                         }

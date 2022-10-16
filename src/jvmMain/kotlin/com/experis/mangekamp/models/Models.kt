@@ -50,6 +50,7 @@ class Category(
 class Participant(
     var rank: Int,
     var score: String,
+    var teamNumber: Int? = null,
     @EmbeddedId
     var id: ParticipantId
 )

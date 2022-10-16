@@ -56,15 +56,15 @@ class ScoreCalculationTest {
         val minigolf = SeasonSimplifiedEvent("Minigolf", ball, 1, null, null, isTeamBased = true)
 
         val participants = listOf(
-            minigolf.createParticipant(rank = 2, isMangekjemper = false, id = 1, name = "Donald Duck"),
-            minigolf.createParticipant(rank = 2, isMangekjemper = false, id = 2, name = "Ole"),
-            minigolf.createParticipant(rank = 3, isMangekjemper = false, id = 3, name = "Dole"),
-            minigolf.createParticipant(rank = 3, isMangekjemper = true, id = 4, name = "Doffen"),
-            minigolf.createParticipant(rank = 1, isMangekjemper = true, id = 5, name = "Fetter Anton"),
-            minigolf.createParticipant(rank = 1, isMangekjemper = true, id = 6, name = "Mikke Mus"),
-            minigolf.createParticipant(rank = 1, isMangekjemper = true, id = 7, name = "Langbein"),
-            minigolf.createParticipant(rank = 4, isMangekjemper = false, id = 8, name = "Petter Smart"),
-            minigolf.createParticipant(rank = 4, isMangekjemper = true, id = 9, name = "Fantonald"),
+            minigolf.createParticipant(rank = 2, teamNumber = 2, isMangekjemper = false, id = 1, name = "Donald Duck"),
+            minigolf.createParticipant(rank = 2, teamNumber = 2, isMangekjemper = false, id = 2, name = "Ole"),
+            minigolf.createParticipant(rank = 3, teamNumber = 3, isMangekjemper = false, id = 3, name = "Dole"),
+            minigolf.createParticipant(rank = 3, teamNumber = 3, isMangekjemper = true, id = 4, name = "Doffen"),
+            minigolf.createParticipant(rank = 1, teamNumber = 1, isMangekjemper = true, id = 5, name = "Fetter Anton"),
+            minigolf.createParticipant(rank = 1, teamNumber = 1, isMangekjemper = true, id = 6, name = "Mikke Mus"),
+            minigolf.createParticipant(rank = 1, teamNumber = 1, isMangekjemper = true, id = 7, name = "Langbein"),
+            minigolf.createParticipant(rank = 4, teamNumber = 4, isMangekjemper = false, id = 8, name = "Petter Smart"),
+            minigolf.createParticipant(rank = 4, teamNumber = 4, isMangekjemper = true, id = 9, name = "Fantonald"),
         )
 
         participants.calculateMangekjemperRankings { it.isMangekjemper }
@@ -87,6 +87,7 @@ class ScoreCalculationTest {
         name: String,
         rank: Int,
         isMangekjemper: Boolean,
+        teamNumber: Int? = null,
         gender: Gender = Gender.MALE
     ): SeasonParticipant =
         SeasonParticipant(
@@ -95,7 +96,7 @@ class ScoreCalculationTest {
             gender = gender,
             seasonRank = 0,
             seasonPoints = 0,
-            events = listOf(this.copy(actualRank = rank))
+            events = listOf(this.copy(actualRank = rank, teamNumber = teamNumber))
         ).apply {
             this.isMangekjemper = isMangekjemper
         }
@@ -433,9 +434,75 @@ class ScoreCalculationTest {
     }
 
     @Test
+    fun `Should correctly calculate mangekjemper ranking when teams are tied`() {
+        val event = SeasonSimplifiedEvent("Tennis double", ball, 1, isTeamBased = true)
+        val participants = listOf(
+            SeasonParticipant(
+                1,
+                "Ole",
+                gender = Gender.MALE,
+                seasonPoints = 11,
+                seasonRank = 0,
+                events = listOf(event.copy(actualRank = 1, teamNumber = 1)),
+                isMangekjemper = true
+            ),
+            SeasonParticipant(
+                2,
+                "Dole",
+                gender = Gender.MALE,
+                seasonPoints = 11,
+                seasonRank = 0,
+                events = listOf(event.copy(actualRank = 1, teamNumber = 1)),
+                isMangekjemper = true
+            ),
+            SeasonParticipant(
+                3,
+                "Doffen",
+                gender = Gender.MALE,
+                seasonPoints = 11,
+                seasonRank = 0,
+                events = listOf(event.copy(actualRank = 1, teamNumber = 2)),
+                isMangekjemper = true
+            ),
+            SeasonParticipant(
+                4,
+                "Donald Duck",
+                gender = Gender.MALE,
+                seasonPoints = 17,
+                seasonRank = 0,
+                events = listOf(event.copy(actualRank = 1, teamNumber = 2)),
+                isMangekjemper = true
+            ),
+            SeasonParticipant(
+                4,
+                "Onkel Skrue",
+                gender = Gender.MALE,
+                seasonPoints = 17,
+                seasonRank = 0,
+                events = listOf(event.copy(actualRank = 2, teamNumber = 3)),
+                isMangekjemper = true
+            ),
+        )
+        participants.calculateMangekjemperRankings(simpleMangekjemperRequirement)
+        val mangekjemperRanks = participants.map {
+            it.personName to it.events.first().mangekjemperRank
+        }
+        mangekjemperRanks shouldContain ("Ole" to 1)
+        mangekjemperRanks shouldContain ("Dole" to 1)
+        mangekjemperRanks shouldContain ("Doffen" to 1)
+        mangekjemperRanks shouldContain ("Donald Duck" to 1)
+        mangekjemperRanks shouldContain ("Onkel Skrue" to 3)
+    }
+
+    @Test
     fun `Should correctly calculate season`() {
         val events = seasonEvents.toEvents()
-        events.setupParticipants()
+        val persons = mutableListOf<Person>()
+        events.registerResults(listOf(1.b, 2.k, 1.b, 2.t, 1.k, 2.t, 1.t, 1.b, 1.b), "Donald Duck", 1010, persons)
+        events.registerResults(listOf(4.b, 3.k, 2.b, 3.t, 2.k, 1.t, 2.t, 2.b, 3.b), "Ole", 1020, persons)
+        events.registerResults(listOf(2.b, 1.k, 0.b, 0.t, 3.k, 0.t, 0.t, 2.b, 0.b), "Onkel Skrue", 1030, persons)
+        events.registerResults(listOf(5.b, 0.k, 4.b, 4.t, 5.k, 4.t, 4.t, 3.b, 4.b), "Dole", 1040, persons)
+        events.registerResults(listOf(3.b, 4.k, 3.b, 1.t, 4.k, 3.t, 3.t, 1.b, 2.b), "Doffen", 1050, persons)
 
         val result = events.calculateSeason(gender = Gender.MALE, expectedMangekjemperEvents = 8) { it.events.isMangekjemper()}
         val winner = result[0]
@@ -469,15 +536,6 @@ class ScoreCalculationTest {
         }.shouldForAll {(expected, actual) ->
             actual shouldBe expected
         }
-    }
-
-    private fun List<Event>.setupParticipants() {
-        val persons = mutableListOf<Person>()
-        registerResults(listOf(1.b, 2.k, 1.b, 2.t, 1.k, 2.t, 1.t, 1.b, 1.b), "Donald Duck", 1010, persons)
-        registerResults(listOf(4.b, 3.k, 2.b, 3.t, 2.k, 1.t, 2.t, 2.b, 3.b), "Ole", 1020, persons)
-        registerResults(listOf(2.b, 1.k, 0.b, 0.t, 3.k, 0.t, 0.t, 2.b, 0.b), "Onkel Skrue", 1030, persons)
-        registerResults(listOf(5.b, 0.k, 4.b, 4.t, 5.k, 4.t, 4.t, 3.b, 4.b), "Dole", 1040, persons)
-        registerResults(listOf(3.b, 4.k, 3.b, 1.t, 4.k, 3.t, 3.t, 1.b, 2.b), "Doffen", 1050, persons)
     }
 
     // Extension property kun for å gjøre det lettere å lese hva som er ball, teknikk og kondis
@@ -517,6 +575,7 @@ class ScoreCalculationTest {
                 this[i].participants += Participant(
                     rank = ranks[i],
                     score = "",
+                    teamNumber = if (this[i].isTeamBased) ranks[i] else null,
                     id = ParticipantId(
                         person,
                         this[i]
