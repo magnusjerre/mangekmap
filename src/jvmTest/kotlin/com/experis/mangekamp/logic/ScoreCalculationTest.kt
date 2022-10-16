@@ -7,6 +7,7 @@ import com.experis.mangekamp.models.Participant
 import com.experis.mangekamp.models.ParticipantId
 import com.experis.mangekamp.models.Person
 import io.kotest.inspectors.shouldForAll
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import java.time.LocalDate
@@ -271,16 +272,28 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 15,
                 seasonRank = 0,
-                events = emptyList(),
+                events = listOf(
+                    events[0].copy(actualRank = 1),
+                    events[1].copy(actualRank = 1),
+                    events[2].copy(actualRank = 2),
+                    events[3].copy(actualRank = 2),
+                    events[4].copy(actualRank = 5),
+                ),
                 isMangekjemper = true
             ),
             SeasonParticipant(
                 2,
                 "Ole",
                 gender = Gender.MALE,
-                seasonPoints = 20,
+                seasonPoints = 15,
                 seasonRank = 0,
-                events = emptyList(),
+                events = listOf(
+                    events[0].copy(actualRank = 2),
+                    events[2].copy(actualRank = 1),
+                    events[3].copy(actualRank = 1),
+                    events[4].copy(actualRank = 2),
+                    events[6].copy(actualRank = 3),
+                ),
                 isMangekjemper = true
             ),
             SeasonParticipant(
@@ -330,21 +343,93 @@ class ScoreCalculationTest {
             ),
         )
         participants.calculateSeasonRank(8)
-        val sorted = participants.sorted()
-        sorted[0].personName shouldBe "Dole"
-        sorted[0].seasonRank shouldBe 1
-        sorted[1].personName shouldBe "Doffen"
-        sorted[1].seasonRank shouldBe 2
-        sorted[2].personName shouldBe "Donald Duck"
-        sorted[2].seasonRank shouldBe 3
-        sorted[3].personName shouldBe "Ole"
-        sorted[3].seasonRank shouldBe 4
-        sorted[4].personName shouldBe "Mikke Mus"
-        sorted[4].seasonRank shouldBe 5
-        sorted[5].personName shouldBe "Onkel Skrue"
-        sorted[5].seasonRank shouldBe 6
-        sorted[6].personName shouldBe "Langbein"
-        sorted[6].seasonRank shouldBe 7
+        val sorted = participants.sorted().map { it.personName to it.seasonRank }
+        sorted[0] shouldBe ("Dole" to 1)
+        sorted[1] shouldBe ("Doffen" to 2)
+        sorted[2] shouldBe ("Ole" to 3)
+        sorted[3] shouldBe ("Donald Duck" to 4)
+        sorted[4] shouldBe ("Mikke Mus" to 5)
+        sorted[5] shouldBe ("Onkel Skrue" to 6)
+        sorted[6] shouldBe ("Langbein" to 7)
+    }
+
+    @Test
+    fun `Should correctly set season rank when multiple participants have the same points`() {
+        val events = listOf(
+            SeasonSimplifiedEvent("Minigolf", ball, 1),
+            SeasonSimplifiedEvent("Orientering", kondisjon, 2),
+            SeasonSimplifiedEvent("Crossfit", kondisjon, 3),
+            SeasonSimplifiedEvent("Frisbeegolf", teknikk, 4),
+            SeasonSimplifiedEvent("Roing", kondisjon, 5),
+        )
+        val participants = listOf(
+            SeasonParticipant(
+                1,
+                "Ole",
+                gender = Gender.MALE,
+                seasonPoints = 11,
+                seasonRank = 0,
+                events = listOf(
+                    events[0].copy(actualRank = 1),
+                    events[1].copy(actualRank = 3),
+                    events[2].copy(actualRank = 2),
+                    events[3].copy(actualRank = 4),
+                    events[4].copy(actualRank = 1),
+                ),
+                isMangekjemper = true
+            ),
+            SeasonParticipant(
+                2,
+                "Dole",
+                gender = Gender.MALE,
+                seasonPoints = 11,
+                seasonRank = 0,
+                events = listOf(
+                    events[0].copy(actualRank = 2),
+                    events[1].copy(actualRank = 1),
+                    events[2].copy(actualRank = 3),
+                    events[3].copy(actualRank = 2),
+                    events[3].copy(actualRank = 3),
+                ),
+                isMangekjemper = true
+            ),
+            SeasonParticipant(
+                3,
+                "Doffen",
+                gender = Gender.MALE,
+                seasonPoints = 11,
+                seasonRank = 0,
+                events = listOf(
+                    events[0].copy(actualRank = 3),
+                    events[1].copy(actualRank = 2),
+                    events[2].copy(actualRank = 1),
+                    events[3].copy(actualRank = 3),
+                    events[3].copy(actualRank = 2),
+                ),
+                isMangekjemper = true
+            ),
+            SeasonParticipant(
+                4,
+                "Donald Duck",
+                gender = Gender.MALE,
+                seasonPoints = 17,
+                seasonRank = 0,
+                events = listOf(
+                    events[0].copy(actualRank = 4),
+                    events[1].copy(actualRank = 4),
+                    events[2].copy(actualRank = 4),
+                    events[3].copy(actualRank = 1),
+                    events[4].copy(actualRank = 4),
+                ),
+                isMangekjemper = true
+            ),
+        )
+        participants.calculateSeasonRank(8)
+        val sorted = participants.sorted().map { it.personName to it.seasonRank }
+        sorted shouldContain ("Ole" to 1)
+        sorted shouldContain ("Doffen" to 2)
+        sorted shouldContain ("Dole" to 2)
+        sorted shouldContain ("Donald Duck" to 4)
     }
 
     @Test

@@ -14,15 +14,21 @@ fun List<Event>.calculateSeason(
 ): List<SeasonParticipant> {
     val participants = toSeasonParticipants(gender)
     participants.calculateMangekjemperRankings(mangekjemperRequirement)
-    participants.forEach { it.calculateSeasonPoints(penaltyPoints, expectedMangekjemperEvents, mangekjemperRequirement) }
+    participants.forEach {
+        it.calculateSeasonPoints(
+            penaltyPoints,
+            expectedMangekjemperEvents,
+            mangekjemperRequirement
+        )
+    }
     participants.calculateSeasonRank(expectedMangekjemperEvents)
     return participants.sorted()
 }
 
 private fun List<Event>.toSeasonParticipants(gender: Gender): List<SeasonParticipant> = flatMap { it.participants }
-        .filter { it.id.person.gender == gender }
-        .groupBy { it.id.person }
-        .map { (person, personParticipations) ->
+    .filter { it.id.person.gender == gender }
+    .groupBy { it.id.person }
+    .map { (person, personParticipations) ->
         SeasonParticipant(
             personId = person.id!!.toLong(),
             personName = person.name,
@@ -129,17 +135,76 @@ fun SeasonParticipant.calculateSeasonPoints(
 }
 
 fun List<SeasonParticipant>.calculateSeasonRank(expectedMangekjemperEvents: Int = 8) {
-    sortedBy {
-        if (it.isMangekjemper) {
-            it.seasonPoints
+    // First pass, will later need to recalculate between those with same ranks
+    val sortedSeasonParticipants = sortedBy {
+        recalculateSeasonScore(it, expectedMangekjemperEvents)
+    }
+    var rank = 1
+    var previousRank = 1
+    var previousScore = 0
+    for (seasonParticipant in sortedSeasonParticipants) {
+        val recalculatedScore = recalculateSeasonScore(seasonParticipant, expectedMangekjemperEvents)
+        if (recalculatedScore == previousScore) {
+            seasonParticipant.seasonRank = previousRank
         } else {
-            1000 + (expectedMangekjemperEvents - min(
-                it.events.count(),
-                expectedMangekjemperEvents
-            )) * 1000 + it.seasonPoints
+            seasonParticipant.seasonRank = rank
+            previousRank = rank
+            previousScore = recalculatedScore
         }
-    }.forEachIndexed { index, seasonParticipant -> seasonParticipant.seasonRank = index + 1 }
+        rank++
+    }
+
+    // Recalculate internally between tied participants
+    val tiedParticipants = sortedSeasonParticipants.groupBy { it.seasonRank }.filter { it.value.count() > 1 }
+    for (tiedParticipantsEntry in tiedParticipants) {
+        val rankings = tiedParticipantsEntry.value.map {it.personId to it.countRankings() }.toMap()
+        val sortable = tiedParticipantsEntry.value.toMutableList()
+        sortable.sortWith { a, b ->
+            val aRankCount = rankings[a.personId]!!.toMutableList()
+            val bRankCount = rankings[b.personId]!!.toMutableList()
+            while (aRankCount.isNotEmpty() && bRankCount.isNotEmpty()) {
+                val aRank = aRankCount.removeFirst()
+                val bRank = bRankCount.removeFirst()
+                if (aRank.first < bRank.first) return@sortWith -1
+                if (aRank.first == bRank.first && aRank.second != bRank.second) {
+                    // Using minus here since we want the one with the most occurrences to come first
+                    return@sortWith -aRank.second.compareTo(bRank.second)
+                }
+            }
+
+            if (aRankCount.isEmpty() && bRankCount.isEmpty()) return@sortWith 0
+            else if (aRankCount.isEmpty()) return@sortWith 1
+            else return@sortWith -1
+        }
+
+        var nextRank = sortable.first().seasonRank + 1
+        var previousSeasonParticipant = sortable.first()
+        for (seasonParticipant in sortable.subList(1, sortable.size)) {
+            if (rankings[seasonParticipant.personId] == rankings[previousSeasonParticipant.personId]) {
+                seasonParticipant.seasonRank = previousSeasonParticipant.seasonRank
+            } else {
+                seasonParticipant.seasonRank = nextRank
+            }
+            previousSeasonParticipant = seasonParticipant
+            nextRank++
+        }
+    }
 }
+
+private fun recalculateSeasonScore(it: SeasonParticipant, expectedMangekjemperEvents: Int) =
+    if (it.isMangekjemper) {
+        it.seasonPoints
+    } else {
+        1000 + (expectedMangekjemperEvents - min(
+            it.events.count(),
+            expectedMangekjemperEvents
+        )) * 1000 + it.seasonPoints
+    }
+
+private fun SeasonParticipant.countRankings(): List<Pair<Int, Int>> =
+    events.mapNotNull { it.mangekjemperRank ?: it.actualRank }.groupBy { it }.mapValues { it.value.count() }.toList()
+        .sortedBy { it.first }
+
 
 fun List<SeasonSimplifiedEvent>.isMangekjemper(mangekjemerEventsRequirement: Int = 8, categoryTypes: Int = 3) =
     count() >= mangekjemerEventsRequirement && map { it.category.name }.distinct().count() == categoryTypes
