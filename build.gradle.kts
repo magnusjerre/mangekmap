@@ -3,6 +3,7 @@ plugins {
     id("org.flywaydb.flyway") version "9.3.0"
     id("org.springframework.boot") version "2.7.3"
     id("io.spring.dependency-management") version "1.0.13.RELEASE"
+    id("com.microsoft.azure.azurewebapp") version "1.2.0"
     kotlin("plugin.spring") version "1.6.21"
     kotlin("plugin.serialization") version "1.7.10"
     kotlin("plugin.jpa") version "1.6.21"
@@ -107,4 +108,22 @@ tasks.named<Copy>("jvmProcessResources") {
 tasks.named<JavaExec>("run") {
     dependsOn(tasks.named<Jar>("jvmJar"))
     classpath(tasks.named<Jar>("jvmJar"))
+}
+
+var subscriptionEnv: String = System.getenv("subscription") ?: "missing"
+var resourceGroupEnv: String = System.getenv("resourceGroup") ?: "missing"
+azurewebapp {
+    subscription = subscriptionEnv
+    resourceGroup = resourceGroupEnv
+    appName = "mangekamp"
+    pricingTier = "Basic"
+    region = "Norway East"
+    setRuntime(closureOf<com.microsoft.azure.gradle.configuration.GradleRuntimeConfig> {
+        os("Linux")
+        webContainer("Tomcat 10.0")
+        javaVersion("Java 17")
+    })
+    setAuth(closureOf<com.microsoft.azure.gradle.auth.GradleAuthConfig> {
+        type = "azure_cli"
+    })
 }
