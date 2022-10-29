@@ -3,7 +3,8 @@ services:
   database:
     image: postgres:14.5
     environment:
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=localadmin
+      - POSTGRES_PASSWORD=localadmin
     networks:
       - mangekamp_backend
     ports:
@@ -12,7 +13,7 @@ services:
     image: dpage/pgadmin4
     environment:
       - PGADMIN_DEFAULT_PASSWORD=password
-      - PGADMIN_DEFAULT_EMAIL=postgres@post.gres
+      - PGADMIN_DEFAULT_EMAIL=post@gres.no
     networks:
       - mangekamp_backend
     ports:
