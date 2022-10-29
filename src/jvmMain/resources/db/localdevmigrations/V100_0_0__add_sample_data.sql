@@ -1,13 +1,6 @@
-INSERT INTO public.admin_user(email, name, password_digest, username) VALUES ( 'admin@mangekamp.no', 'Mange Kamp', '{bcrypt}$2a$10$GRLdNijSQMUvl/au9ofL.eDwmoohzzS7.rmNSJZ.0FxO/BTk76klW', 'admin');
-
-INSERT INTO public.category(color, name) VALUES ('#56A3A6', 'Kondisjon');
-INSERT INTO public.category(color, name) VALUES ('#6B0504', 'Balløvelser');
-INSERT INTO public.category(color, name) VALUES ('#A3320B', 'Teknikk');
-
 INSERT INTO public.person(name, email, gender, retired) VALUES ('Donal Duck', 'donald.duck@mangekamp.no', 0, false);
 INSERT INTO public.person(name, email, gender, retired) VALUES ('Dolly Duck', 'dolly.duck@mangekamp.no', 1, false);
 INSERT INTO public.person(name, email, gender, retired) VALUES ('Onkel Skrue', 'onkel.skrue@mangekamp.no', 0, false);
-
 
 INSERT INTO public.season(name, start_year) VALUES ('2022-2023 Oslo', 2022);
 
