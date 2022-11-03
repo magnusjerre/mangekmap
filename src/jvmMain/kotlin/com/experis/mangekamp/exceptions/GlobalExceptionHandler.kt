@@ -25,9 +25,14 @@ class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(BadRequestException::class)
     fun handleBadRequestException(request: HttpServletRequest?, exception: BadRequestException) = GenericExceptionResponse(exception.message ?: "null")
+
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    @ExceptionHandler(UnknownInternalServerError::class)
+    fun handleUnknownInternalServerError(request: HttpServletRequest?, exception: UnknownInternalServerError) = GenericExceptionResponse(exception.message ?: "null", extras = exception.extras)
 }
 
-class GenericExceptionResponse(val message: String)
+class GenericExceptionResponse(val message: String, val extras: Any? = null)
 class ResourceNotFoundException(message: String) : Exception(message)
 class InvalidPropertyException(message: String) : Exception(message)
 class BadRequestException(message: String) : Exception(message)
+class UnknownInternalServerError(message: String, val extras: Any? = null): Exception(message)

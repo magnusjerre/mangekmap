@@ -1,9 +1,12 @@
 package com.experis.mangekamp.controllers.csvimport
 
+import com.experis.mangekamp.exceptions.UnknownInternalServerError
 import com.experis.mangekamp.models.Gender
 import com.experis.mangekamp.models.Person
+import java.lang.Exception
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import org.springframework.web.client.HttpServerErrorException.InternalServerError
 
 
 fun List<String>.mapPersons(): List<Person> {
@@ -35,16 +38,21 @@ fun List<String>.mapSeasonName(): String {
 }
 
 fun String.mapEventParticipant(headers: Map<String, Int>): EventCsv = split(";").let {
-    EventCsv(
-        seasonName = it[headers["Sesong"]!!],
-        eventName = it[headers["Øvelse"]!!],
-        date = LocalDate.parse(it[headers["Dato"]!!], DateTimeFormatter.ISO_DATE),
-        eventCategory = it[headers["Kategori"]!!],
-        participantName = it[headers["Name"]!!],
-        participantScore = it[headers["Score"]!!],
-        participantRank = it[headers["Rank"]!!].toInt(),
-        participantGender = if (it[headers["Kjønn"]!!] == "G") Gender.MALE else Gender.FEMALE,
-    )
+    try {
+        return EventCsv(
+            seasonName = it[headers["Sesong"]!!],
+            eventName = it[headers["Øvelse"]!!],
+            date = LocalDate.parse(it[headers["Dato"]!!], DateTimeFormatter.ISO_DATE),
+            eventCategory = it[headers["Kategori"]!!],
+            participantName = it[headers["Name"]!!],
+            participantScore = it[headers["Score"]!!],
+            participantRank = it[headers["Rank"]!!].toInt(),
+            participantGender = if (it[headers["Kjønn"]!!] == "G") Gender.MALE else Gender.FEMALE,
+        )
+    } catch (e: Exception) {
+        throw UnknownInternalServerError("errorMessage: ${e.message}. CsvRow: $it",
+            headers.map { header -> header.key to it.getOrNull(header.value) })
+    }
 }
 
 fun List<String>.mapEvents(): Map<String, List<EventCsv>> {
