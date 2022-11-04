@@ -1,17 +1,21 @@
 package seasons
 
-import csstype.BorderStyle
+import components.HeaderTableCell
+import csstype.BoxShadow
+import csstype.BoxShadowInset
 import csstype.Color
 import csstype.Display
-import csstype.FontStyle
 import csstype.FontWeight
+import csstype.Length
+import csstype.NamedColor
 import csstype.None
 import csstype.Overflow
+import csstype.Padding
 import csstype.TextAlign
-import csstype.TextDecoration
 import csstype.em
 import csstype.pc
 import csstype.px
+import csstype.rgba
 import dto.GenderDto
 import dto.SeasonParticipantDto
 import dto.SimpleEventDto
@@ -22,6 +26,7 @@ import mui.material.Size
 import mui.material.Table
 import mui.material.TableBody
 import mui.material.TableCell
+import mui.material.TableCellPadding
 import mui.material.TableCellProps
 import mui.material.TableContainer
 import mui.material.TableHead
@@ -79,34 +84,33 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
         TableContainer {
             sx {
                 overflowX = Overflow.visible
+                width = Length.fitContent
             }
             Table {
                 stickyHeader = true
+                size = Size.small
                 TableHead {
                     TableRow {
-                        TableCell { +"Plassering" }
-                        TableCell {
+                        HeaderTableCell { +"Plassering" }
+                        HeaderTableCell {
                             sx {
-                                width = 150.px
+                                width = 12.em
                             }
                             +"Navn"
                         }
-                        TableCell { +"#Øvelser" }
-                        TableCell { +"Poeng" }
-                        TableCell { +"Mangekjemper?" }
+                        HeaderTableCell { +"#Øvelser" }
+                        HeaderTableCell { +"Poeng" }
+                        HeaderTableCell { +"Mangekjemper?" }
                         for (event in props.events) {
-                            TableCell {
-                                sx {
-                                    backgroundColor = Color(event.categoryDto.color)
-                                    color = Color("white")
-                                    minWidth = 4.em
-                                }
+                            HeaderTableCell {
+                                backgroundColor = Color(event.categoryDto.color)
+                                highlightOnHover = true
                                 key = "${event.id}"
                                 Link {
                                     to = "/events/${event.id}"
                                     css {
                                         textDecoration = None.none
-                                        color = Color("white")
+                                        color = NamedColor.white
                                     }
                                     +event.name
                                 }
@@ -132,7 +136,6 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
                                     +"✔"
                                 else
                                     +"\uD83D\uDEAB"
-
                             }
                             for (event in props.events) {
                                 CenteredTableCell {
