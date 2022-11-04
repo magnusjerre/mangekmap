@@ -1,6 +1,7 @@
 package seasons
 
 import components.HeaderTableCell
+import components.TableBox
 import csstype.BoxShadow
 import csstype.BoxShadowInset
 import csstype.Color
@@ -15,6 +16,7 @@ import csstype.TextAlign
 import csstype.em
 import csstype.pc
 import csstype.px
+import csstype.rem
 import csstype.rgba
 import dto.GenderDto
 import dto.SeasonParticipantDto
@@ -22,6 +24,7 @@ import dto.SimpleEventDto
 import emotion.react.css
 import emotion.styled.styled
 import kotlinx.js.jso
+import mui.material.Paper
 import mui.material.Size
 import mui.material.Table
 import mui.material.TableBody
@@ -39,6 +42,7 @@ import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
 import react.key
 import react.router.dom.Link
+import tableBoxPadding
 
 external interface SeasonResultTableProps : Props {
     var events: List<SimpleEventDto>
@@ -79,7 +83,7 @@ private val CenteredTableCell = styled(TableCell)(){tableCellProps: TableCellPro
 val SeasonResultTable = FC<SeasonResultTableProps> { props ->
     val header = props.participants.firstOrNull()?.gender?.let { if (it == GenderDto.MALE) "Menn" else "Kvinner" } ?: ""
 
-    Box {
+    TableBox {
         h2 { +header }
         TableContainer {
             sx {

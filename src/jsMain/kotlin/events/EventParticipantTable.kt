@@ -1,7 +1,11 @@
 package events
 
+import components.HeaderTableCell
 import csstype.px
 import dto.ParticipantDto
+import mui.material.BaseSize
+import mui.material.Paper
+import mui.material.Size
 import mui.material.Table
 import mui.material.TableBody
 import mui.material.TableCell
@@ -27,15 +31,16 @@ val EventParticipantTable = FC<EventParticipantTableProps> { props ->
                 maxWidth = 400.px
                 width = 400.px
             }
+            size = Size.small
 
             TableHead {
                 TableRow {
-                    TableCell { +"Navn" }
+                    HeaderTableCell { +"Navn" }
                     if (isTeamBased) {
-                        TableCell { +"Lagnummer" }
+                        HeaderTableCell { +"Lagnummer" }
                     }
-                    TableCell { +"Score" }
-                    TableCell { +"Rank" }
+                    HeaderTableCell { +"Score" }
+                    HeaderTableCell { +"Rank" }
                 }
             }
 

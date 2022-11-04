@@ -1,11 +1,14 @@
 package seasons
 
 import authentication.getIsAuthenticated
+import csstype.Length
 import csstype.px
 import dto.SeasonDto
 import kotlinx.coroutines.launch
 import mainScope
 import mui.material.CircularProgress
+import mui.material.Paper
+import mui.material.Size
 import mui.material.Table
 import mui.material.TableBody
 import mui.material.TableCell
@@ -20,6 +23,7 @@ import react.dom.html.ReactHTML.h1
 import react.router.dom.Link
 import react.useEffectOnce
 import react.useState
+import tableBoxPadding
 
 val Seasons = FC<Props> {
     var seasons by useState<List<SeasonDto>>(emptyList())
@@ -36,13 +40,13 @@ val Seasons = FC<Props> {
     }
 
     TableContainer {
+        component = Paper
+        sx {
+            width = Length.fitContent
+            padding = tableBoxPadding
+        }
         Table {
-            sx {
-                maxWidth = 600.px
-                width = 600.px
-            }
-
-
+            size = Size.small
             TableHead {
                 TableRow {
                     TableCell { +"Navn" }

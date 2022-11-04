@@ -1,7 +1,12 @@
 package events
 
+import components.HeaderTableCell
+import components.TableBox
 import csstype.Display
 import csstype.FlexDirection
+import csstype.FlexWrap
+import csstype.JustifyContent
+import csstype.Length
 import csstype.em
 import dto.EventDto
 import dto.GenderDto
@@ -19,6 +24,7 @@ import mui.material.ButtonVariant
 import mui.material.CircularProgress
 import mui.material.FormControlVariant
 import mui.material.InputBaseProps
+import mui.material.Paper
 import mui.material.Size
 import mui.material.TableBody
 import mui.material.TableCell
@@ -39,6 +45,7 @@ import react.router.useNavigate
 import react.router.useParams
 import react.useEffectOnce
 import react.useState
+import tableBoxPadding
 
 private fun List<ParticipantDto>.mapReplace(dtoUpdated: ParticipantDto) = map {
     if (it.personId == dtoUpdated.personId) dtoUpdated
@@ -84,152 +91,173 @@ val EventEditResults = FC<Props> {
             +"Tilbake"
         }
 
-        h2 { +"Menn" }
-        TableContainer {
-            TableHead {
-                TableRow {
-                    TableCell { +"Navn" }
-                    if (event?.isTeamBased == true) {
-                        TableCell { +"Lagnummer" }
-                    }
-                    TableCell { +"Score" }
-                    TableCell { +"Plassering" }
-                }
+        Box {
+            sx {
+                display = Display.flex
+                flexDirection = FlexDirection.row
+                flexWrap = FlexWrap.wrap
             }
+            TableBox {
+                h2 { +"Menn" }
+                TableContainer {
+                    TableHead {
+                        TableRow {
+                            HeaderTableCell {
+                                sx {
+                                    width = 12.em
+                                }
+                                +"Navn"
+                            }
+                            if (event?.isTeamBased == true) {
+                                HeaderTableCell { +"Lagnummer" }
+                            }
+                            HeaderTableCell { +"Score" }
+                            HeaderTableCell { +"Plassering" }
+                        }
+                    }
 
-            TableBody {
-                for (participant in men) {
-                    TableRow {
-                        key = "${participant.personId}"
-                        TableCell { +participant.name }
-                        if (event?.isTeamBased == true) {
-                            TableCell {
-                                TextField {
-                                    inputProps = jso {
-                                        type = InputType.number
+                    TableBody {
+                        for (participant in men) {
+                            TableRow {
+                                key = "${participant.personId}"
+                                TableCell { +participant.name }
+                                if (event?.isTeamBased == true) {
+                                    TableCell {
+                                        TextField {
+                                            inputProps = jso {
+                                                type = InputType.number
+                                            }
+                                            variant = FormControlVariant.standard
+                                            asDynamic().InputProps = jso<InputBaseProps> {
+                                                value = participant.teamNumber
+                                                onChange = { changeEvent ->
+                                                    men =
+                                                        men.mapReplace(
+                                                            participant.copy(
+                                                                teamNumber = (changeEvent.target.asDynamic().value as String).toInt()
+                                                                    .coerceIn(0, 1000)
+                                                            )
+                                                        )
+                                                }
+                                            }
+                                        }
                                     }
-                                    variant = FormControlVariant.standard
-                                    asDynamic().InputProps = jso<InputBaseProps> {
-                                        value = participant.teamNumber
-                                        onChange = { changeEvent ->
-                                            men =
-                                                men.mapReplace(
-                                                    participant.copy(
-                                                        teamNumber = (changeEvent.target.asDynamic().value as String).toInt()
-                                                            .coerceIn(0, 1000)
+                                }
+                                TableCell {
+                                    TextField {
+                                        variant = FormControlVariant.standard
+                                        asDynamic().InputProps = jso<InputBaseProps> {
+                                            value = participant.score
+                                            onChange = { changeEvent ->
+                                                men =
+                                                    men.mapReplace(participant.copy(score = changeEvent.target.asDynamic().value as String))
+                                            }
+                                        }
+                                    }
+                                }
+                                TableCell {
+                                    TextField {
+                                        size = Size.small
+                                        inputProps = jso {
+                                            type = InputType.number
+                                        }
+                                        variant = FormControlVariant.standard
+                                        asDynamic().InputProps = jso<InputBaseProps> {
+                                            value = participant.rank
+                                            onChange = { changeEvent ->
+                                                men =
+                                                    men.mapReplace(
+                                                        participant.copy(
+                                                            rank = (changeEvent.target.asDynamic().value as String).toInt()
+                                                                .coerceIn(0, 1000)
+                                                        )
                                                     )
-                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                        TableCell {
-                            TextField {
-                                variant = FormControlVariant.standard
-                                asDynamic().InputProps = jso<InputBaseProps> {
-                                    value = participant.score
-                                    onChange = { changeEvent ->
-                                        men =
-                                            men.mapReplace(participant.copy(score = changeEvent.target.asDynamic().value as String))
-                                    }
-                                }
-                            }
-                        }
-                        TableCell {
-                            TextField {
-                                size = Size.small
-                                inputProps = jso {
-                                    type = InputType.number
-                                }
-                                variant = FormControlVariant.standard
-                                asDynamic().InputProps = jso<InputBaseProps> {
-                                    value = participant.rank
-                                    onChange = { changeEvent ->
-                                        men =
-                                            men.mapReplace(
-                                                participant.copy(
-                                                    rank = (changeEvent.target.asDynamic().value as String).toInt()
-                                                        .coerceIn(0, 1000)
-                                                )
-                                            )
-                                    }
-                                }
-                            }
-                        }
                     }
                 }
             }
-        }
 
-        h2 { +"Kvinner" }
-        TableContainer {
-            TableHead {
-                TableRow {
-                    TableCell { +"Navn" }
-                    TableCell { +"Score" }
-                    if (event?.isTeamBased == true) {
-                        TableCell { +"Lagnummer" }
+            TableBox {
+                h2 { +"Kvinner" }
+                TableContainer {
+                    TableHead {
+                        TableRow {
+                            HeaderTableCell {
+                                sx {
+                                    width = 12.em
+                                }
+                                +"Navn"
+                            }
+                            HeaderTableCell { +"Score" }
+                            if (event?.isTeamBased == true) {
+                                HeaderTableCell { +"Lagnummer" }
+                            }
+                            HeaderTableCell { +"Plassering" }
+                        }
                     }
-                    TableCell { +"Plassering" }
-                }
-            }
 
-            TableBody {
-                for (participant in women) {
-                    TableRow {
-                        key = "${participant.personId}"
-                        TableCell { +participant.name }
-                        if (event?.isTeamBased == true) {
-                            TableCell {
-                                TextField {
-                                    inputProps = jso {
-                                        type = InputType.number
-                                    }
-                                    variant = FormControlVariant.standard
-                                    asDynamic().InputProps = jso<InputBaseProps> {
-                                        value = participant.teamNumber
-                                        onChange = { changeEvent ->
-                                            women =
-                                                women.mapReplace(
-                                                    participant.copy(
-                                                        teamNumber = (changeEvent.target.asDynamic().value as String).toInt()
-                                                            .coerceIn(0, 1000)
-                                                    )
-                                                )
+                    TableBody {
+                        for (participant in women) {
+                            TableRow {
+                                key = "${participant.personId}"
+                                TableCell { +participant.name }
+                                if (event?.isTeamBased == true) {
+                                    TableCell {
+                                        TextField {
+                                            inputProps = jso {
+                                                type = InputType.number
+                                            }
+                                            variant = FormControlVariant.standard
+                                            asDynamic().InputProps = jso<InputBaseProps> {
+                                                value = participant.teamNumber
+                                                onChange = { changeEvent ->
+                                                    women =
+                                                        women.mapReplace(
+                                                            participant.copy(
+                                                                teamNumber = (changeEvent.target.asDynamic().value as String).toInt()
+                                                                    .coerceIn(0, 1000)
+                                                            )
+                                                        )
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        }
-                        TableCell {
-                            TextField {
-                                variant = FormControlVariant.standard
-                                asDynamic().InputProps = jso<InputBaseProps> {
-                                    value = participant.score
-                                    onChange = { changeEvent ->
-                                        women =
-                                            women.mapReplace(participant.copy(score = changeEvent.target.asDynamic().value as String))
+                                TableCell {
+                                    TextField {
+                                        variant = FormControlVariant.standard
+                                        asDynamic().InputProps = jso<InputBaseProps> {
+                                            value = participant.score
+                                            onChange = { changeEvent ->
+                                                women =
+                                                    women.mapReplace(participant.copy(score = changeEvent.target.asDynamic().value as String))
+                                            }
+                                        }
                                     }
                                 }
-                            }
-                        }
-                        TableCell {
-                            TextField {
-                                inputProps = jso {
-                                    type = InputType.number
-                                }
-                                variant = FormControlVariant.standard
-                                asDynamic().InputProps = jso<InputBaseProps> {
-                                    value = participant.rank
-                                    onChange = { changeEvent ->
-                                        women =
-                                            women.mapReplace(
-                                                participant.copy(
-                                                    rank = (changeEvent.target.asDynamic().value as String).toInt()
-                                                        .coerceIn(0, 1000)
-                                                )
-                                            )
+                                TableCell {
+                                    TextField {
+                                        inputProps = jso {
+                                            type = InputType.number
+                                        }
+                                        variant = FormControlVariant.standard
+                                        asDynamic().InputProps = jso<InputBaseProps> {
+                                            value = participant.rank
+                                            onChange = { changeEvent ->
+                                                women =
+                                                    women.mapReplace(
+                                                        participant.copy(
+                                                            rank = (changeEvent.target.asDynamic().value as String).toInt()
+                                                                .coerceIn(0, 1000)
+                                                        )
+                                                    )
+                                            }
+                                        }
                                     }
                                 }
                             }

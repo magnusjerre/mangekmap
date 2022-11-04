@@ -1,7 +1,12 @@
+import components.HeaderTableCell
+import csstype.Length
 import csstype.em
 import csstype.px
+import dto.GenderDto
 import dto.PersonDto
 import kotlinx.coroutines.launch
+import mui.material.Paper
+import mui.material.Size
 import mui.material.Table
 import mui.material.TableBody
 import mui.material.TableCell
@@ -45,29 +50,29 @@ val Persons = FC<Props> {
     }
 
     TableContainer {
+        component = Paper
+        sx {
+            padding = tableBoxPadding
+            width = Length.fitContent
+        }
         Table {
-            sx {
-                maxWidth = 600.px
-                width = 600.px
-                minWidth = 300.px
-            }
-
+            size = Size.small
             TableHead {
                 TableRow {
-                    TableCell { +"Navn" }
-                    TableCell { +"Epost" }
-                    TableCell { +"Kjønn" }
-                    TableCell { +"Sluttet?" }
-                    TableCell { +"Rediger" }
+                    HeaderTableCell { +"Navn" }
+                    HeaderTableCell { +"Epost" }
+                    HeaderTableCell { +"Kjønn" }
+                    HeaderTableCell { +"Sluttet?" }
+                    HeaderTableCell { +"Rediger" }
                 }
             }
             TableBody {
                 for (person in persons) {
                     TableRow {
-                        TableCell { +"${person.name}" }
-                        TableCell { +"${person.email}" }
-                        TableCell { +"${person.gender}" }
-                        TableCell { +"${if (person.retired) "Ja" else "Nei"}" }
+                        TableCell { +person.name }
+                        TableCell { +person.email }
+                        TableCell { +if (person.gender == GenderDto.MALE) "Mann" else "Kvinne" }
+                        TableCell { +if (person.retired) "Ja" else "Nei" }
                         TableCell {
                             Link {
                                 to = "/persons/${person.id}"

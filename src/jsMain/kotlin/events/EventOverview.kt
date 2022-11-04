@@ -1,15 +1,21 @@
 package events
 
 import authentication.getIsAuthenticated
+import components.TableBox
 import csstype.Display
 import csstype.FlexDirection
+import csstype.FlexWrap
 import csstype.FontWeight
+import csstype.Padding
 import csstype.em
+import csstype.pc
 import dto.EventDto
 import dto.GenderDto
 import kotlinx.coroutines.launch
 import mainScope
 import mui.material.CircularProgress
+import mui.material.Paper
+import mui.material.useMediaQuery
 import mui.system.Box
 import mui.system.sx
 import react.FC
@@ -23,6 +29,7 @@ import react.router.dom.Link
 import react.router.useParams
 import react.useEffectOnce
 import react.useState
+import tableBoxPadding
 
 val EventOverview = FC<Props> {
     val eventId = useParams()["id"]!!.toLong()
@@ -91,14 +98,25 @@ val EventOverview = FC<Props> {
 
         h2 { +"Resultater" }
 
-        h3 { +"Menn"}
-        EventParticipantTable {
-            participants = event!!.participants.filter { it.gender == GenderDto.MALE }
-        }
+        Box {
+            sx {
+                display = Display.flex
+                flexDirection = FlexDirection.row
+                flexWrap = FlexWrap.wrap
+            }
+            TableBox {
+                h3 { +"Menn" }
+                EventParticipantTable {
+                    participants = event!!.participants.filter { it.gender == GenderDto.MALE }
+                }
+            }
 
-        h3 { +"Kvinner"}
-        EventParticipantTable {
-            participants = event!!.participants.filter { it.gender == GenderDto.FEMALE }
+            TableBox {
+                h3 { +"Kvinner" }
+                EventParticipantTable {
+                    participants = event!!.participants.filter { it.gender == GenderDto.FEMALE }
+                }
+            }
         }
     }
 }
