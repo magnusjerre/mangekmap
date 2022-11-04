@@ -8,8 +8,10 @@ import kotlinx.coroutines.launch
 import kotlinx.js.jso
 import mui.material.ListItem
 import mui.material.Stack
+import mui.material.StackDirection
 import mui.material.Typography
 import mui.material.styles.TypographyVariant
+import mui.system.responsive
 import mui.system.sx
 import react.ElementType
 import react.FC
@@ -62,8 +64,10 @@ val Welcome = FC<WelcomeProps> { props ->
     }
 
     Stack {
+        direction = responsive(StackDirection.row)
+        spacing = responsive(2)
         sx {
-            marginTop = 2.em
+            marginTop = 1.em
         }
 
         if (isAuthenticated) {

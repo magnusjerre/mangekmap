@@ -14,6 +14,8 @@ import kotlinx.coroutines.launch
 import mainScope
 import mui.system.Box
 import mui.system.Stack
+import mui.system.StackDirection
+import mui.system.responsive
 import mui.system.sx
 import react.FC
 import react.Props
@@ -78,6 +80,8 @@ val Season = FC<Props> {
         }
 
         Stack {
+            direction = responsive(StackDirection.row)
+            spacing = responsive(2)
             Link {
                 to = "/"
                 +"Tilbake til forside"

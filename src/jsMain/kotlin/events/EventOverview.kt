@@ -6,30 +6,27 @@ import csstype.Display
 import csstype.FlexDirection
 import csstype.FlexWrap
 import csstype.FontWeight
-import csstype.Padding
+import csstype.Length
 import csstype.em
-import csstype.pc
 import dto.EventDto
 import dto.GenderDto
 import kotlinx.coroutines.launch
 import mainScope
 import mui.material.CircularProgress
-import mui.material.Paper
-import mui.material.useMediaQuery
+import mui.material.Stack
+import mui.material.StackDirection
 import mui.system.Box
+import mui.system.responsive
 import mui.system.sx
 import react.FC
 import react.Props
 import react.dom.html.ReactHTML.h1
-import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.h3
-import react.dom.html.ReactHTML.p
 import react.dom.html.ReactHTML.span
 import react.router.dom.Link
 import react.router.useParams
 import react.useEffectOnce
 import react.useState
-import tableBoxPadding
 
 val EventOverview = FC<Props> {
     val eventId = useParams()["id"]!!.toLong()
@@ -64,39 +61,47 @@ val EventOverview = FC<Props> {
                 display = Display.flex
                 flexDirection = FlexDirection.column
                 fontWeight = FontWeight.bold
+                marginBottom = 1.em
             }
             span { +"Dato: ${event!!.date}" }
             span { +"Kategori: ${event!!.category.name}" }
             span { +"Deltakere: $numberOfMen menn og $numberOfWomen $womenText" }
         }
 
-        if (event != null) {
-            Link {
-                to = "/seasons/${event!!.seasonId}"
-                +"Tilbake til sesong"
+        Stack {
+            direction = responsive(StackDirection.row)
+            spacing = responsive(2)
+
+            sx {
+                width = Length.fitContent
+                flexWrap = FlexWrap.wrap
+            }
+            if (event != null) {
+                Link {
+                    to = "/seasons/${event!!.seasonId}"
+                    +"Tilbake til sesong"
+                }
+            }
+
+            if (isAuthenticated) {
+                Link {
+                    to = "/events/$eventId/participants/addremove"
+                    +"Legg til/fjern deltakere"
+                }
+                Link {
+                    to = "/events/$eventId/edit"
+                    +"Rediger øvelseinfo"
+                }
+                Link {
+                    to = "/events/$eventId/participants/editresults"
+                    +"Rediger resultater"
+                }
+                Link {
+                    to = "/events/$eventId/delete"
+                    +"Slett øvelse"
+                }
             }
         }
-
-        if (isAuthenticated) {
-            Link {
-                to = "/events/$eventId/participants/addremove"
-                +"Legg til/fjern deltakere"
-            }
-            Link {
-                to = "/events/$eventId/edit"
-                +"Rediger øvelseinfo"
-            }
-            Link {
-                to = "/events/$eventId/participants/editresults"
-                +"Rediger resultater"
-            }
-            Link {
-                to = "/events/$eventId/delete"
-                +"Slett øvelse"
-            }
-        }
-
-        h2 { +"Resultater" }
 
         Box {
             sx {

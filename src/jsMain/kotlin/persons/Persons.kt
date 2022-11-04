@@ -1,7 +1,6 @@
 import components.HeaderTableCell
 import csstype.Length
 import csstype.em
-import csstype.px
 import dto.GenderDto
 import dto.PersonDto
 import kotlinx.coroutines.launch
@@ -14,6 +13,8 @@ import mui.material.TableContainer
 import mui.material.TableHead
 import mui.material.TableRow
 import mui.system.Stack
+import mui.system.StackDirection
+import mui.system.responsive
 import mui.system.sx
 import persons.fetchPersons
 import react.FC
@@ -39,6 +40,8 @@ val Persons = FC<Props> {
     }
 
     Stack {
+        direction = responsive(StackDirection.row)
+        spacing = responsive(2)
         Link {
             to = "/"
             +"Tilbake til forside"
@@ -54,6 +57,7 @@ val Persons = FC<Props> {
         sx {
             padding = tableBoxPadding
             width = Length.fitContent
+            marginTop = 1.em
         }
         Table {
             size = Size.small
