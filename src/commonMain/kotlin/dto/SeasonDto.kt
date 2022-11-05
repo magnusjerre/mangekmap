@@ -8,6 +8,7 @@ data class SeasonDto(
     var participants: List<SeasonParticipantDto>,
     var name: String,
     var startYear: Int,
+    var mangekjemperRequiredEvents: Short,
     var id: Long? = null
 )
 
@@ -40,5 +41,6 @@ data class EventResult(val eventId: Long, val actualRank: Int?, val mangekjemper
 @Serializable
 class SeasonPostDto(
     var name: String,
-    var startYear: Int
+    var startYear: Int,
+    var mangekjemperRequiredEvents: Short,
 )

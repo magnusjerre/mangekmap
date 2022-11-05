@@ -48,6 +48,7 @@ class SeasonsController(
 
         season.name = seasonDto.name
         season.startYear = seasonDto.startYear
+        season.mangekjemperRequiredEvents = seasonDto.mangekjemperRequiredEvents
 
         return seasonRepository.save(season).toDto()
     }

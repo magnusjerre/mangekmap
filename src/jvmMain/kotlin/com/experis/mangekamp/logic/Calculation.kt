@@ -10,7 +10,7 @@ fun List<Event>.calculateSeason(
     gender: Gender,
     penaltyPoints: (Gender) -> Int = { if (it == Gender.MALE) 16 else 8 },
     expectedMangekjemperEvents: Int = 8,
-    mangekjemperRequirement: (SeasonParticipant) -> Boolean = { it.events.isMangekjemper() }
+    mangekjemperRequirement: (SeasonParticipant) -> Boolean = { it.events.isMangekjemper(expectedMangekjemperEvents) }
 ): List<SeasonParticipant> {
     val participants = toSeasonParticipants(gender)
     participants.calculateMangekjemperRankings(mangekjemperRequirement)
@@ -81,23 +81,6 @@ fun List<SeasonParticipant>.calculateMangekjemperRankings(mangekjemperRequiremen
             prevActualRank = relevantResults.first().actualRank
             prevMangekjemperRank = relevantResults.first().mangekjemperRank!!
         }
-
-
-//
-//        var rank = 1
-//        var prev = relevantMangekjempere.first().second.first().events.find { e -> e.eventId == eventId }!!
-//        prev.mangekjemperRank = rank++
-//        val isTeamBased = prev.isTeamBased
-//        for (i in 1 until relevantMangekjempere.count()) {
-//            val curr = relevantMangekjempere[i].events.find { e -> e.eventId == eventId }!!
-//            curr.mangekjemperRank = if (curr.actualRank == prev.actualRank) prev.mangekjemperRank else rank
-//            if (!isTeamBased) {
-//                rank++
-//            } else if (curr.actualRank != prev.actualRank) {
-//                rank++
-//            }
-//            prev = curr
-//        }
     }
 }
 
@@ -134,7 +117,7 @@ fun SeasonParticipant.calculateSeasonPoints(
         output.add(physicalConditionCategory to physicalConditionEventRankings.removeFirst())
         output.add(ballCategory to ballEventsRankings.removeFirst())
 
-        for (i in output.count() until 8) {
+        for (i in output.count() until expectedMangekjemperEvents) {
             val p = physicalConditionEventRankings.firstOrNull() ?: Int.MAX_VALUE
             val b = ballEventsRankings.firstOrNull() ?: Int.MAX_VALUE
             val t = techniqueEventsRankings.firstOrNull() ?: Int.MAX_VALUE

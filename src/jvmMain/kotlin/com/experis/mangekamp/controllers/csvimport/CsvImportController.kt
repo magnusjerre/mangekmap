@@ -1,5 +1,6 @@
 package com.experis.mangekamp.controllers.csvimport
 
+import MANGEKJEMPER_REQUIRED_EVENTS
 import com.experis.mangekamp.controllers.seasons.toDto
 import com.experis.mangekamp.models.Category
 import com.experis.mangekamp.models.Event
@@ -53,7 +54,8 @@ class CsvImportController(
             Season(
                 events = mutableListOf(),
                 name = seasonName,
-                startYear = seasonStartYear
+                startYear = seasonStartYear,
+                mangekjemperRequiredEvents = MANGEKJEMPER_REQUIRED_EVENTS
             )
         )
 

@@ -25,6 +25,18 @@ class IsMangekjemperTest {
     }
 
     @Test
+    fun `Participant with enough events and enough unique categories should be mangekjemper test 2`() {
+        listOf(
+            SeasonSimplifiedEvent("Minigolf", ball, 1),
+            SeasonSimplifiedEvent("Orientering", kondisjon, 2),
+            SeasonSimplifiedEvent("Crossfit", kondisjon, 3),
+            SeasonSimplifiedEvent("Frisbeegolf", teknikk, 4),
+            SeasonSimplifiedEvent("Roing", kondisjon, 5),
+            SeasonSimplifiedEvent("Poker", teknikk, 6),
+        ).isMangekjemper(mangekjemerEventsRequirement = 5, categoryTypes = 3) shouldBe true
+    }
+
+    @Test
     fun `Participant with too few events should not be mangekjemeper`() {
         listOf(
             SeasonSimplifiedEvent("Minigolf", ball, 1),

@@ -28,7 +28,7 @@ import react.useState
 
 val Season = FC<Props> {
     val seasonId = useParams()["id"]!!.toLong()
-    var season by useState(SeasonDto(emptyList(), emptyList() , "Unknown", 0))
+    var season by useState(SeasonDto(emptyList(), emptyList() , "Unknown", 0, 8))
     var categories by useState(emptyList<CategoryDto>())
     var male by useState<List<SeasonParticipantDto>>(emptyList())
     var female by useState<List<SeasonParticipantDto>>(emptyList())

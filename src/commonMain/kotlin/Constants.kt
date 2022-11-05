@@ -1,0 +1,1 @@
+const val MANGEKJEMPER_REQUIRED_EVENTS: Short = 8

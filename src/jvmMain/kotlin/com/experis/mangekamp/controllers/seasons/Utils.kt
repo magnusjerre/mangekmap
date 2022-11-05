@@ -5,28 +5,27 @@ import com.experis.mangekamp.controllers.persons.toDto
 import com.experis.mangekamp.logic.SeasonParticipant
 import com.experis.mangekamp.logic.SeasonSimplifiedEvent
 import com.experis.mangekamp.logic.calculateSeason
-import com.experis.mangekamp.models.Category
 import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Gender
 import com.experis.mangekamp.models.Season
-import dto.EventPostDto
 import dto.EventResult
 import dto.SeasonDto
 import dto.SeasonParticipantDto
 import dto.SeasonPostDto
 import dto.SimpleEventDto
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 fun Season.toDto(excludeEvents: Boolean = false): SeasonDto {
-    val malesResult = events.calculateSeason(gender = Gender.MALE)
-    val femalesResult = events.calculateSeason(gender = Gender.FEMALE)
+    val malesResult =
+        events.calculateSeason(gender = Gender.MALE, expectedMangekjemperEvents = mangekjemperRequiredEvents.toInt())
+    val femalesResult =
+        events.calculateSeason(gender = Gender.FEMALE, expectedMangekjemperEvents = mangekjemperRequiredEvents.toInt())
 
     return SeasonDto(
         events = if (excludeEvents) emptyList() else events.sortedBy { it.date }.map(Event::toDtoSimple),
         participants = (malesResult + femalesResult).map(SeasonParticipant::toDto),
         name = name,
         startYear = startYear,
+        mangekjemperRequiredEvents = mangekjemperRequiredEvents,
         id = id
     )
 }
@@ -56,5 +55,6 @@ fun SeasonSimplifiedEvent.toDto(): EventResult = EventResult(
 fun SeasonPostDto.toModel(): Season = Season(
     events = mutableListOf(),
     name = name,
-    startYear = startYear
+    startYear = startYear,
+    mangekjemperRequiredEvents = mangekjemperRequiredEvents
 )

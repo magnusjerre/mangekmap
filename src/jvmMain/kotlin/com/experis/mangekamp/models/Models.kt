@@ -69,6 +69,7 @@ class Season(
     var events: MutableList<Event>,
     var name: String,
     var startYear: Int,
+    var mangekjemperRequiredEvents: Short,
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null

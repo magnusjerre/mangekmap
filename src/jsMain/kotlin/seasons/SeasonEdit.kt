@@ -1,5 +1,6 @@
 package seasons
 
+import MANGEKJEMPER_REQUIRED_EVENTS
 import csstype.AlignItems
 import csstype.Display
 import csstype.FlexDirection
@@ -31,6 +32,7 @@ val SeasonEdit = FC<Props> {
     val seasonId = useParams()["id"]?.toLongOrNull()
     var seasonName by useState("")
     var seasonYear by useState("")
+    var mangekjemperRequiredEvents by useState("$MANGEKJEMPER_REQUIRED_EVENTS")
     var fetching by useState(false)
     val navigate = useNavigate()
 
@@ -43,6 +45,7 @@ val SeasonEdit = FC<Props> {
             console.log("season response", season)
             seasonName = season.name
             seasonYear = season.startYear.toString()
+            mangekjemperRequiredEvents = season.mangekjemperRequiredEvents.toString()
             fetching = false
         }
     }
@@ -101,6 +104,24 @@ val SeasonEdit = FC<Props> {
             }
         }
 
+        TextField {
+            id = "mangekjemper-required-events"
+            label = ReactNode("Øvelser for å bli mangekjemper")
+            fullWidth = false
+            value = mangekjemperRequiredEvents
+            sx {
+                marginTop = 1.em
+            }
+            asDynamic().InputProps = jso<InputBaseProps> {
+                onChange = {
+                    val input = it.target.asDynamic().value as String
+                    if (input == "" || input.toShortOrNull() != null) {
+                        mangekjemperRequiredEvents = input
+                    }
+                }
+            }
+        }
+
         Box {
             sx {
                 display = Display.flex
@@ -111,29 +132,29 @@ val SeasonEdit = FC<Props> {
                 variant = ButtonVariant.contained
                 onClick = {
                     mainScope.launch {
-                        console.log("trykket på lagre")
-                        val seasonRequestDto = SeasonPostDto(seasonName, seasonYear.toInt())
-                        val seasonResponseDto = if (seasonId == null) postSeason(seasonRequestDto) else putSeason(seasonId, seasonRequestDto)
+                        val seasonRequestDto =
+                            SeasonPostDto(seasonName, seasonYear.toInt(), mangekjemperRequiredEvents.toShort())
+                        val seasonResponseDto = if (seasonId == null) postSeason(seasonRequestDto) else putSeason(
+                            seasonId,
+                            seasonRequestDto
+                        )
                         seasonName = seasonResponseDto.name
                         seasonYear = seasonResponseDto.startYear.toString()
+                        mangekjemperRequiredEvents = seasonResponseDto.mangekjemperRequiredEvents.toString()
                     }
                 }
                 +"Lagre"
             }
-
             Button {
                 sx {
                     marginLeft = 1.em
                 }
                 variant = ButtonVariant.outlined
                 onClick = {
-                    navigate.invoke("/seasons")
+                    navigate.invoke("/")
                 }
                 +"Avbryt"
             }
         }
-
-
     }
-
 }
