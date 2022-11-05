@@ -8,7 +8,7 @@ import com.experis.mangekamp.logic.calculateSeason
 import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Gender
 import com.experis.mangekamp.models.Season
-import dto.EventResult
+import dto.EventResultDto
 import dto.SeasonDto
 import dto.SeasonParticipantDto
 import dto.SeasonPostDto
@@ -46,9 +46,10 @@ fun SeasonParticipant.toDto(): SeasonParticipantDto = SeasonParticipantDto(
     results = this.events.map(SeasonSimplifiedEvent::toDto)
 )
 
-fun SeasonSimplifiedEvent.toDto(): EventResult = EventResult(
+fun SeasonSimplifiedEvent.toDto(): EventResultDto = EventResultDto(
     eventId = eventId,
     actualRank = actualRank,
+    isAttendanceOnly = isAttendanceOnly,
     mangekjemperRank = mangekjemperRank
 )
 

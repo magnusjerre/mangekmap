@@ -22,7 +22,7 @@ external interface EventParticipantTableProps : Props {
 }
 
 val EventParticipantTable = FC<EventParticipantTableProps> { props ->
-    val participants = props.participants//.sorted()
+    val participants = props.participants.sorted()
     val isTeamBased = participants.firstOrNull()?.teamNumber != null
 
     TableContainer {
@@ -40,7 +40,8 @@ val EventParticipantTable = FC<EventParticipantTableProps> { props ->
                         HeaderTableCell { +"Lagnummer" }
                     }
                     HeaderTableCell { +"Score" }
-                    HeaderTableCell { +"Rank" }
+                    HeaderTableCell { +"Plassering" }
+                    HeaderTableCell { +"Kun oppmøte?" }
                 }
             }
 
@@ -54,6 +55,11 @@ val EventParticipantTable = FC<EventParticipantTableProps> { props ->
                         }
                         TableCell { +participant.score }
                         TableCell { +"${participant.rank}" }
+                        TableCell {
+                            if (participant.isAttendanceOnly) {
+                                +"✔"
+                            }
+                        }
                     }
                 }
             }

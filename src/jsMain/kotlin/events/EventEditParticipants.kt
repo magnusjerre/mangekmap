@@ -21,6 +21,7 @@ import mui.material.AlertColor
 import mui.material.AlertVariant
 import mui.material.Button
 import mui.material.ButtonVariant
+import mui.material.Checkbox
 import mui.material.CircularProgress
 import mui.material.FormControlVariant
 import mui.material.InputBaseProps
@@ -66,8 +67,8 @@ val EventEditResults = FC<Props> {
         mainScope.launch {
             val eventResponse = getEvent(eventId)
             event = eventResponse
-            men = eventResponse.participants.filter { it.gender == GenderDto.MALE }
-            women = eventResponse.participants.filter { it.gender == GenderDto.FEMALE }
+            men = eventResponse.participants.filter { it.gender == GenderDto.MALE }.sorted()
+            women = eventResponse.participants.filter { it.gender == GenderDto.FEMALE }.sorted()
         }
     }
 
@@ -116,6 +117,7 @@ val EventEditResults = FC<Props> {
                                 }
                                 HeaderTableCell { +"Score" }
                                 HeaderTableCell { +"Plassering" }
+                                HeaderTableCell { +"Kun oppmøte?" }
                             }
                         }
 
@@ -179,6 +181,20 @@ val EventEditResults = FC<Props> {
                                             }
                                         }
                                     }
+                                    TableCell {
+                                        Checkbox {
+                                            checked = participant.isAttendanceOnly
+                                            value = participant.isAttendanceOnly
+                                            onChange = { _, _ ->
+                                                val newAttendanceValue = !participant.isAttendanceOnly
+                                                men = men.mapReplace(
+                                                    participant.copy(
+                                                        isAttendanceOnly = newAttendanceValue,
+                                                        rank = if (newAttendanceValue) men.count() else participant.rank)
+                                                )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -204,6 +220,7 @@ val EventEditResults = FC<Props> {
                                     HeaderTableCell { +"Lagnummer" }
                                 }
                                 HeaderTableCell { +"Plassering" }
+                                HeaderTableCell { +"Kun oppmøte?" }
                             }
                         }
 
@@ -266,6 +283,20 @@ val EventEditResults = FC<Props> {
                                             }
                                         }
                                     }
+                                    TableCell {
+                                        Checkbox {
+                                            checked = participant.isAttendanceOnly
+                                            value = participant.isAttendanceOnly
+                                            onChange = { _, _ ->
+                                                val newAttendanceValue = !participant.isAttendanceOnly
+                                                women = women.mapReplace(
+                                                    participant.copy(
+                                                        isAttendanceOnly = newAttendanceValue,
+                                                        rank = if (newAttendanceValue) women.count() else participant.rank)
+                                                    )
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -298,6 +329,7 @@ val EventEditResults = FC<Props> {
                             ParticipantPostDto(
                                 personId = it.personId,
                                 rank = it.rank,
+                                isAttendanceOnly = it.isAttendanceOnly,
                                 score = it.score,
                                 teamNumber = it.teamNumber
                             )

@@ -23,18 +23,21 @@ data class SeasonParticipantDto(
     val seasonRank: Int,
     val seasonPoints: Int,
     val isMangekjemper: Boolean,
-    val results: List<EventResult>,
+    val results: List<EventResultDto>,
 )
 
 @Serializable
-data class EventResult(val eventId: Long, val actualRank: Int?, val mangekjemperRank: Int?) {
-    fun prettyResult(): String = if (mangekjemperRank == null) {
-        if (actualRank == null)
-            ""
-        else
-            "- ($actualRank)"
-    } else {
-        "$mangekjemperRank (${actualRank?.toString() ?: ""})"
+data class EventResultDto(val eventId: Long, val actualRank: Int?, val isAttendanceOnly: Boolean?, val mangekjemperRank: Int?) {
+    fun prettyResult(): String {
+        val actualRankPretty = if (actualRank != null) {
+            "- ($actualRank)${if (isAttendanceOnly == true) "*" else ""}"
+        } else ""
+
+        return if (mangekjemperRank == null) {
+            actualRankPretty
+        } else {
+            "$mangekjemperRank $actualRankPretty"
+        }
     }
 }
 

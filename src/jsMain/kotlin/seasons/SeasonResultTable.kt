@@ -2,8 +2,6 @@ package seasons
 
 import components.HeaderTableCell
 import components.TableBox
-import csstype.BoxShadow
-import csstype.BoxShadowInset
 import csstype.Color
 import csstype.Display
 import csstype.FontWeight
@@ -11,38 +9,36 @@ import csstype.Length
 import csstype.NamedColor
 import csstype.None
 import csstype.Overflow
-import csstype.Padding
 import csstype.TextAlign
 import csstype.em
 import csstype.pc
-import csstype.px
-import csstype.rem
-import csstype.rgba
 import dto.GenderDto
 import dto.SeasonParticipantDto
 import dto.SimpleEventDto
 import emotion.react.css
 import emotion.styled.styled
 import kotlinx.js.jso
-import mui.material.Paper
+import mui.material.IconButton
 import mui.material.Size
 import mui.material.Table
 import mui.material.TableBody
 import mui.material.TableCell
-import mui.material.TableCellPadding
 import mui.material.TableCellProps
 import mui.material.TableContainer
 import mui.material.TableHead
 import mui.material.TableRow
-import mui.system.Box
+import mui.material.Tooltip
+import mui.material.Typography
 import mui.system.sx
 import react.FC
 import react.Props
+import react.ReactNode
+import react.createElement
+import react.dom.html.ReactHTML
 import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.span
 import react.key
 import react.router.dom.Link
-import tableBoxPadding
 
 external interface SeasonResultTableProps : Props {
     var events: List<SimpleEventDto>
@@ -143,9 +139,19 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
                             }
                             for (event in props.events) {
                                 CenteredTableCell {
-                                    val result =
-                                        participant.results.find { it.eventId == event.id }?.prettyResult() ?: ""
-                                    +result
+                                    val participantEvent =
+                                        participant.results.find { it.eventId == event.id };
+                                    val result = participantEvent?.prettyResult() ?: ""
+                                    if (participantEvent?.isAttendanceOnly == true) {
+                                        Tooltip {
+                                            title = ReactNode("* indikerer at man kun har fått oppmøte. Det betyr at man får en mangekjemperplassering lik antallet mangekjempere")
+                                            ReactHTML.span {
+                                                +result
+                                            }
+                                        }
+                                    } else {
+                                        +result
+                                    }
                                 }
                             }
 
