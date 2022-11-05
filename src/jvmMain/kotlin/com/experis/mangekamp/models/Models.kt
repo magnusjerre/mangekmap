@@ -49,6 +49,7 @@ class Category(
 @Entity
 class Participant(
     var rank: Int,
+    var isAttendanceOnly: Boolean,
     var score: String,
     var teamNumber: Int? = null,
     @EmbeddedId

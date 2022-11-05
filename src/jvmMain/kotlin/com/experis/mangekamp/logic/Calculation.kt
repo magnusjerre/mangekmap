@@ -40,6 +40,7 @@ private fun List<Event>.toSeasonParticipants(gender: Gender): List<SeasonPartici
                     eventName = pt.id.event.title,
                     category = pt.id.event.category,
                     actualRank = pt.rank,
+                    isAttendanceOnly = pt.isAttendanceOnly,
                     mangekjemperRank = null,
                     eventId = pt.id.event.id!!,
                     isTeamBased = pt.id.event.isTeamBased,
@@ -80,6 +81,11 @@ fun List<SeasonParticipant>.calculateMangekjemperRankings(mangekjemperRequiremen
             prevTeamEntry = currentTeamEntry
             prevActualRank = relevantResults.first().actualRank
             prevMangekjemperRank = relevantResults.first().mangekjemperRank!!
+        }
+    }
+    for (mangekjemper in mangekjempere) {
+        mangekjemper.events.filter { ev -> ev.isAttendanceOnly }.forEach {
+            it.mangekjemperRank = mangekjempere.count()
         }
     }
 }
@@ -221,6 +227,10 @@ private fun SeasonParticipant.countRankings(): List<Pair<Int, Int>> =
 fun List<SeasonSimplifiedEvent>.isMangekjemper(mangekjemerEventsRequirement: Int = 8, categoryTypes: Int = 3) =
     count() >= mangekjemerEventsRequirement && map { it.category.name }.distinct().count() == categoryTypes
 
+fun <T> List<T>.isMangekjemper(mangekjemperEventsRequirement: Int = 8, categoryTypes: Int = 3, categoryExtractor: (T) -> Any?): Boolean {
+    return count() >= mangekjemperEventsRequirement && map { categoryExtractor(it) }.distinct().count() >= categoryTypes
+}
+
 data class SeasonParticipant(
     val personId: Long,
     val personName: String,
@@ -240,11 +250,12 @@ data class SeasonSimplifiedEvent(
     val category: Category,
     val eventId: Long,
     val actualRank: Int? = null,
+    val isAttendanceOnly: Boolean = false,
     var mangekjemperRank: Int? = null,
     val teamNumber: Int? = null,
     val isTeamBased: Boolean = false
 ) {
     override fun toString(): String {
-        return "SeasonSimplifiedEvent(eventName=$eventName, category=${category.name}, eventId=$eventId, actualRank=$actualRank, mangekjemperRank=$mangekjemperRank)"
+        return "SeasonSimplifiedEvent(eventName=$eventName, category=${category.name}, eventId=$eventId, actualRank=$actualRank, isAttendanceOnly=$isAttendanceOnly, mangekjemperRank=$mangekjemperRank)"
     }
 }

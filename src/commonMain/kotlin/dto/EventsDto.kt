@@ -19,6 +19,7 @@ class EventDto(
 data class ParticipantDto(
     @Required
     val rank: Int,
+    val isAttendanceOnly: Boolean,
     val score: String,
     val teamNumber: Int?,
     val name: String,
@@ -41,6 +42,7 @@ data class EventPostDto(
 class ParticipantPostDto(
     val personId: Long,
     val rank: Int? = null,
+    val isAttendanceOnly: Boolean? = null,
     val score: String? = null,
     val teamNumber: Int? = null,
 )

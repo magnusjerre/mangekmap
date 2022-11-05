@@ -24,6 +24,7 @@ fun Event.toDto(includeParticipants: Boolean = true): EventDto = EventDto(
 
 fun Participant.toDto(): ParticipantDto = ParticipantDto(
     rank = rank,
+    isAttendanceOnly = isAttendanceOnly,
     score = score,
     name = id.person.name,
     gender = id.person.gender.toDto(),

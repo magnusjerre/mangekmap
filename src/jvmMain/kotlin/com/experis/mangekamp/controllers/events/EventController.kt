@@ -88,6 +88,7 @@ class EventController(
                 Participant(
                     rank = pp.rank ?: 0,
                     score = pp.score ?: "",
+                    isAttendanceOnly = pp.isAttendanceOnly ?: false,
                     id = ParticipantId(
                         person = np,
                         event = event
@@ -103,6 +104,7 @@ class EventController(
         event.participants.filter { patchExistingPersonIds.contains(it.id.person.id) }.forEach {
             val patchedParticipant = body.find { pp -> pp.personId == it.id.person.id }!!
             it.rank = patchedParticipant.rank ?: it.rank
+            it.isAttendanceOnly = patchedParticipant.isAttendanceOnly ?: it.isAttendanceOnly
             it.score = patchedParticipant.score ?: it.score
             it.teamNumber = patchedParticipant.teamNumber ?: it.teamNumber
         }

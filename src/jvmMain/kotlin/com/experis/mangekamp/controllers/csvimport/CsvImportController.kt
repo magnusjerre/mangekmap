@@ -90,6 +90,7 @@ class CsvImportController(
                     participantRepository.save(
                         Participant(
                             rank = eventCsv.participantRank,
+                            isAttendanceOnly = false,
                             score = eventCsv.participantScore,
                             id = ParticipantId(
                                 person = getPerson(eventCsv.participantName),

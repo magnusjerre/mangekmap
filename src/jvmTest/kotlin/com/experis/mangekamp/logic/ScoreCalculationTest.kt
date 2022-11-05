@@ -21,7 +21,7 @@ class ScoreCalculationTest {
     // Mangekjemper-ranking
     @Test
     fun `Mangekjempere should receive a separate mangekjemper-rank recalculated based on the existing event-rank where all non-mangekjempere are omitted from the event`() {
-        val minigolf = SeasonSimplifiedEvent("Minigolf", ball, 1, null, null)
+        val minigolf = SeasonSimplifiedEvent("Minigolf", ball, 1, null, false, null)
 
         val participants = listOf(
             minigolf.createParticipant(rank = 2, isMangekjemper = true, id = 1, name = "Donald Duck"),
@@ -53,7 +53,7 @@ class ScoreCalculationTest {
 
     @Test
     fun `Mangekjempere team ranking should receive a separate mangekjemper-rank recalculated based on the existing event-rank where all non-mangekjempere are omitted from the event`() {
-        val minigolf = SeasonSimplifiedEvent("Minigolf", ball, 1, null, null, isTeamBased = true)
+        val minigolf = SeasonSimplifiedEvent("Minigolf", ball, 1, null,  false,null, isTeamBased = true)
 
         val participants = listOf(
             minigolf.createParticipant(rank = 2, teamNumber = 2, isMangekjemper = false, id = 1, name = "Donald Duck"),
@@ -495,6 +495,37 @@ class ScoreCalculationTest {
     }
 
     @Test
+    fun `Should calculate mangekjemper rank for attendance only using the total number of mangekjempere`() {
+        val events = seasonEvents.toEvents().subList(0, 5)
+        val persons = mutableListOf<Person>()
+        events.registerResults(listOf(1.b, 1.k, 1.b, 1.t, 1.t), "Donald Duck", 1010, persons)
+        events.registerResults(listOf(2.b, 2.k, 2.b, 0.t, 0.t), "Ole", 1020, persons)
+        events.registerResults(listOf(3.b, 3.k, 3.b, 2.t, 0.t), "Onkel Skrue", 1030, persons)
+        events.registerResults(listOf(4.b, 4.k, 4.b, 3.t, 2.t), "Dole", 1040, persons)
+        events.registerResults(listOf(5.b, 5.k, 5.b, 4.t, 0.t), "Doffen", 1040, persons)
+        // Make Dole and Doffen attendants only. This way his last event-score should be replaced by 4 which is the number of mangekjempere
+        events.last().participants.find { it.id.person.name == "Dole" }!!.isAttendanceOnly = true
+        events[3].participants.find { it.id.person.name == "Doffen" }!!.isAttendanceOnly = true
+
+        val result = events.calculateSeason(gender = Gender.MALE, expectedMangekjemperEvents = 4) { it.events.isMangekjemper(4) }
+        val winner = result[0]
+        winner.shouldHave(name = "Donald Duck", seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
+        winner.shouldHaveMangekjemperRanks(listOf(1.b, 1.k, 1.b, 1.t, 1.t), events)
+        val second = result[1]
+        second.shouldHave(name = "Onkel Skrue", seasonRank = 2, seasonPoints = 8, mangekjemperStatus = true)
+        second.shouldHaveMangekjemperRanks(listOf(2.b, 2.k, 2.b, 2.t, 0.t), events)
+        val third = result[2]
+        third.shouldHave(name = "Dole", seasonRank = 3, seasonPoints = 12, mangekjemperStatus = true)
+        third.shouldHaveMangekjemperRanks(listOf(3.b, 3.k, 3.b, 3.t, 4.t), events)
+        val fourth = result[3]
+        fourth.shouldHave(name = "Doffen", seasonRank = 4, 16, mangekjemperStatus = true)
+        fourth.shouldHaveMangekjemperRanks(listOf(4.b, 4.k, 4.b, 4.t, 0.t), events)
+        val fifth = result[4]
+        fifth.shouldHave(name = "Ole", seasonRank = 5, seasonPoints = 10, mangekjemperStatus = false)
+        fifth.shouldHaveMangekjemperRanks(listOf(0.b, 0.k, 0.b, 0.t, 0.t), events)
+    }
+
+    @Test
     fun `Should correctly calculate season`() {
         val events = seasonEvents.toEvents()
         val persons = mutableListOf<Person>()
@@ -525,7 +556,7 @@ class ScoreCalculationTest {
         this.personName shouldBe name
         this.seasonRank shouldBe seasonRank
         this.seasonPoints shouldBe seasonPoints
-        this.events.isMangekjemper() shouldBe mangekjemperStatus
+        this.isMangekjemper shouldBe mangekjemperStatus
     }
 
     private fun SeasonParticipant.shouldHaveMangekjemperRanks(ranks: List<Int>, allEvents: List<Event>) {
@@ -574,6 +605,7 @@ class ScoreCalculationTest {
             if (ranks[i] != 0) {
                 this[i].participants += Participant(
                     rank = ranks[i],
+                    isAttendanceOnly = false,
                     score = "",
                     teamNumber = if (this[i].isTeamBased) ranks[i] else null,
                     id = ParticipantId(
