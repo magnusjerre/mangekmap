@@ -568,7 +568,7 @@ class ScoreCalculationTest {
         val personsMainRegion = mutableListOf<Person>()
         eventsMainRegion.registerResults(listOf(1.b, 1.k, 1.b, 1.t), "Donald Duck", 1010, personsMainRegion)
         eventsMainRegion.registerResults(listOf(0.b, 3.k, 0.b, 2.t), "Ole", 1020, personsMainRegion)
-        eventsMainRegion.registerResults(listOf(0.b, 1.k, 0.b, 3.t), "Dole", 1040, personsMainRegion)
+        eventsMainRegion.registerResults(listOf(0.b, 1.k, 0.b, 0.t), "Dole", 1040, personsMainRegion)
         eventsMainRegion.registerResults(listOf(0.b, 3.k, 2.b, 0.t), "Doffen", 1050, personsMainRegion)
 
         val seasonMainRegion = Season(eventsMainRegion.toMutableList(), "season", 2022, 4, 1)
@@ -601,14 +601,10 @@ class ScoreCalculationTest {
         donaldMain.shouldHave(name = "Donald Duck", seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
         donaldMain.shouldHaveMangekjemperRanks(listOf(1.b, 1.k, 1.b, 1.t), eventsMainRegion)
         val oleMain = resultsMain.find { it.personName == "Ole" }!!
-        oleMain.shouldHave(name = "Ole", seasonRank = 4, seasonPoints = 13, mangekjemperStatus = false)
+        oleMain.shouldHave(name = "Ole", seasonRank = 2, seasonPoints = 13, mangekjemperStatus = false)
         oleMain.shouldHaveMangekjemperRanks(listOf(0.b, 0.k, 0.b, 0.t), eventsMainRegion)
-        val doleMain = resultsMain.find { it.personName == "Dole" }!!
-        doleMain.shouldHave(name = "Dole", seasonRank = 2, seasonPoints = 9, mangekjemperStatus = true)
-        doleMain.shouldHaveMangekjemperRanks(listOf(0.b, 1.k, 0.b, 2.t), eventsMainRegion)
-        val doffenMain = resultsMain.find { it.personName == "Doffen" }!!
-        doffenMain.shouldHave(name = "Doffen", seasonRank = 3, seasonPoints = 11, mangekjemperStatus = true)
-        doffenMain.shouldHaveMangekjemperRanks(listOf(0.b, 3.k, 2.b, 0.t), eventsMainRegion)
+        resultsMain.find { it.personName == "Dole" } shouldBe null
+        resultsMain.find { it.personName == "Doffen" } shouldBe null
 
         val resultsOther1 = allEvents.calculateSeason(
             seasonId = seasonOtherRegion1.id!!,
@@ -619,22 +615,15 @@ class ScoreCalculationTest {
         }
         // Donald will have a mangekjemepr score of 12 since there are 3 mangekjempere in total and he will receive 3 points for each event in seasonOther1 which he didn't attend, which is all of them
         // See doffenOther1 for more weird stuff
-        val donaldOther1 = resultsOther1.find { it.personName == "Donald Duck" }!!
-        donaldOther1.shouldHave(name = "Donald Duck", seasonRank = 3, seasonPoints = 12, mangekjemperStatus = true)
-        donaldOther1.shouldHaveMangekjemperRanks(listOf(0.k, 0.t), eventsOtherRegion1)
-        val oleOther1 = resultsOther1.find { it.personName == "Ole" }!!
-        oleOther1.shouldHave(name = "Ole", seasonRank = 4, seasonPoints = 14, mangekjemperStatus = false)
-        oleOther1.shouldHaveMangekjemperRanks(listOf(0.k, 0.t), eventsOtherRegion1)
+        resultsOther1.find { it.personName == "Donald Duck" } shouldBe null
+        resultsOther1.find { it.personName == "Ole" } shouldBe null
         val doleOther1 = resultsOther1.find { it.personName == "Dole" }!!
         doleOther1.shouldHave(name = "Dole", seasonRank = 1, seasonPoints = 8, mangekjemperStatus = true)
         doleOther1.shouldHaveMangekjemperRanks(listOf(1.k, 1.t), eventsOtherRegion1)
         // Due to counting the number of rankings, Doffen is considered to have 5 third places, which is better than donalds 4 third places. However, note that Donal Duck's actual rankings
         // are better than Doffens actual rankings. This is a small conundrum, but should not really happen because we should filter out the participants that do not have any events in the
         // given region, otherwise all regions will have all mangekjemepere.
-        val doffenOther1 = resultsOther1.find { it.personName == "Doffen" }!!
-        doffenOther1.shouldHave(name = "Doffen", seasonRank = 2, seasonPoints = 12, mangekjemperStatus = true)
-        doffenOther1.shouldHaveMangekjemperRanks(listOf(0.k, 0.t), eventsOtherRegion1)
-
+        resultsOther1.find { it.personName == "Doffen" } shouldBe null
 
         val resultsOther2 = allEvents.calculateSeason(
             seasonId = seasonOtherRegion2.id!!,
@@ -643,15 +632,9 @@ class ScoreCalculationTest {
         ) {
             it.events.isMangekjemper(seasonMainRegion.mangekjemperRequiredEvents.toInt())
         }
-        val donaldOther2 = resultsOther2.find { it.personName == "Donald Duck" }!!
-        donaldOther2.shouldHave(name = "Donald Duck", seasonRank = 3, seasonPoints = 12, mangekjemperStatus = true)
-        donaldOther2.shouldHaveMangekjemperRanks(listOf(0.t, 0.b, 0.b), eventsOtherRegion2)
-        val oleOther2 = resultsOther2.find { it.personName == "Ole" }!!
-        oleOther2.shouldHave(name = "Ole", seasonRank = 4, seasonPoints = 13, mangekjemperStatus = false)
-        oleOther2.shouldHaveMangekjemperRanks(listOf(0.t, 0.b, 0.b), eventsOtherRegion2)
-        val doleOther2 = resultsOther2.find { it.personName == "Dole" }!!
-        doleOther2.shouldHave(name = "Dole", seasonRank = 2, seasonPoints = 10, mangekjemperStatus = true)
-        doleOther2.shouldHaveMangekjemperRanks(listOf(0.t, 1.b, 0.b), eventsOtherRegion2)
+        resultsOther2.find { it.personName == "Donald Duck" } shouldBe null
+        resultsOther2.find { it.personName == "Ole" } shouldBe null
+        resultsOther2.find { it.personName == "Dole" } shouldBe null
         val doffenOther2 = resultsOther2.find { it.personName == "Doffen" }!!
         doffenOther2.shouldHave(name = "Doffen", seasonRank = 1, seasonPoints = 7, mangekjemperStatus = true)
         doffenOther2.shouldHaveMangekjemperRanks(listOf(1.t, 2.b, 1.b), eventsOtherRegion2)

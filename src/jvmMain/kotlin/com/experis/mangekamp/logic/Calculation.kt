@@ -23,12 +23,9 @@ fun List<Event>.calculateSeason(
             mangekjemperRequirement
         )
     }
-//    val participantsWithThisAsMainSeason = participants.filter { it.mainSeasonId() == seasonId }
-//    participantsWithThisAsMainSeason.calculateSeasonRank(expectedMangekjemperEvents)
-//    return participantsWithThisAsMainSeason.sorted()
-
-    participants.calculateSeasonRank(expectedMangekjemperEvents)
-    return participants.sorted()
+    val participantsWithThisAsMainSeason = participants.filter { it.mainSeasonId() == seasonId }
+    participantsWithThisAsMainSeason.calculateSeasonRank(expectedMangekjemperEvents)
+    return participantsWithThisAsMainSeason.sorted()
 }
 
 private fun List<Event>.toSeasonParticipants(gender: Gender): List<SeasonParticipant> {
@@ -112,7 +109,7 @@ fun SeasonParticipant.calculateSeasonPoints(
     expectedMangekjemperEvents: Int = 8,
     mangekjemperRequirement: (SeasonParticipant) -> Boolean
 ): List<Pair<Category?, Int>> {
-    if (mangekjemperRequirement(this)/* && mainSeasonId() == seasonId*/) {
+    if (mangekjemperRequirement(this) && mainSeasonId() == seasonId) {
         val physicalConditionCategory = events.first { it.category.name == "Kondisjon" }.category
         val ballCategory = events.first { it.category.name == "Balløvelser" }.category
         val techniqueCategory = events.first { it.category.name == "Teknikk" }.category
