@@ -9,6 +9,7 @@ import com.experis.mangekamp.repositories.ParticipantRepository
 import com.experis.mangekamp.repositories.PersonRepository
 import dto.EventDto
 import dto.EventPostDto
+import dto.ParticipantDto
 import dto.ParticipantPostDto
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -141,5 +142,19 @@ class EventController(
         eventRepository.flush()
         eventRepository.deleteById(eventId)
         eventRepository.flush()
+    }
+
+    @GetMapping("{personId}/startYear/{startYear}")
+    fun getAllEvents(@PathVariable personId: Long, @PathVariable startYear: Int): List<ParticipantDto> {
+        val participants = participantRepository.findAllByIdPersonIdAndIdEventSeasonStartYear(personId, startYear)
+
+        return participants.map { it.toDto() }
+    }
+
+    @GetMapping("{personId}/notSeason/{seasonId}")
+    fun getAllEvents2(@PathVariable personId: Long, @PathVariable seasonId: Long): List<ParticipantDto> {
+        val participants = participantRepository.findAllByIdPersonIdAndIdEventSeasonIdIsNot(personId, seasonId)
+
+        return participants.map { it.toDto() }
     }
 }

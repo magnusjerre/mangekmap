@@ -7,54 +7,64 @@ import java.lang.Integer.max
 import java.lang.Integer.min
 
 fun List<Event>.calculateSeason(
+    seasonId: Long,
     gender: Gender,
     penaltyPoints: (Gender) -> Int = { if (it == Gender.MALE) 16 else 8 },
     expectedMangekjemperEvents: Int = 8,
     mangekjemperRequirement: (SeasonParticipant) -> Boolean = { it.events.isMangekjemper(expectedMangekjemperEvents) }
 ): List<SeasonParticipant> {
     val participants = toSeasonParticipants(gender)
-    participants.calculateMangekjemperRankings(mangekjemperRequirement)
+    participants.calculateMangekjemperRankings(seasonId, mangekjemperRequirement)
     participants.forEach {
         it.calculateSeasonPoints(
+            seasonId,
             penaltyPoints,
             expectedMangekjemperEvents,
             mangekjemperRequirement
         )
     }
+//    val participantsWithThisAsMainSeason = participants.filter { it.mainSeasonId() == seasonId }
+//    participantsWithThisAsMainSeason.calculateSeasonRank(expectedMangekjemperEvents)
+//    return participantsWithThisAsMainSeason.sorted()
+
     participants.calculateSeasonRank(expectedMangekjemperEvents)
     return participants.sorted()
 }
 
-private fun List<Event>.toSeasonParticipants(gender: Gender): List<SeasonParticipant> = flatMap { it.participants }
-    .filter { it.id.person.gender == gender }
-    .groupBy { it.id.person }
-    .map { (person, personParticipations) ->
-        SeasonParticipant(
-            personId = person.id!!.toLong(),
-            personName = person.name,
-            gender = person.gender,
-            seasonRank = -1,
-            seasonPoints = -1,
-            events = personParticipations.map { pt ->
-                SeasonSimplifiedEvent(
-                    eventName = pt.id.event.title,
-                    category = pt.id.event.category,
-                    actualRank = pt.rank,
-                    isAttendanceOnly = pt.isAttendanceOnly,
-                    mangekjemperRank = null,
-                    eventId = pt.id.event.id!!,
-                    isTeamBased = pt.id.event.isTeamBased,
-                    teamNumber = pt.teamNumber
-                )
-            })
-    }
-
-fun List<SeasonParticipant>.calculateMangekjemperRankings(mangekjemperRequirement: (SeasonParticipant) -> Boolean) {
+private fun List<Event>.toSeasonParticipants(gender: Gender): List<SeasonParticipant> {
+    return flatMap { it.participants }
+        .filter { it.id.person.gender == gender }
+        .groupBy { it.id.person }
+        .map { (person, personParticipations) ->
+            SeasonParticipant(
+                personId = person.id!!.toLong(),
+                personName = person.name,
+                gender = person.gender,
+                seasonRank = -1,
+                seasonPoints = -1,
+                events = personParticipations.map { pt ->
+                    SeasonSimplifiedEvent(
+                        eventName = pt.id.event.title,
+                        category = pt.id.event.category,
+                        actualRank = pt.rank,
+                        isAttendanceOnly = pt.isAttendanceOnly,
+                        mangekjemperRank = null,
+                        eventId = pt.id.event.id!!,
+                        seasonId = pt.id.event.season.id!!,
+                        isTeamBased = pt.id.event.isTeamBased,
+                        teamNumber = pt.teamNumber
+                    )
+                }
+            )
+        }
+}
+fun List<SeasonParticipant>.calculateMangekjemperRankings(seasonId: Long, mangekjemperRequirement: (SeasonParticipant) -> Boolean) {
     val mangekjempere = this.filter { mangekjemperRequirement(it) }
     mangekjempere.forEach { it.isMangekjemper = true }
-    val eventIds = mangekjempere.flatMap { it.events }.map { it.eventId }.distinct()
+    val eventIds = mangekjempere.flatMap { it.events }.filter { ev -> ev.seasonId == seasonId }.map { it.eventId }.distinct()
     var counter = 1
 
+    // Calculate mangekjemper rankings for events that are part of this seasonId (i.e region)
     for (eventId in eventIds) {
         val relevantMangekjempere = mangekjempere.filter { it.events.any { e -> e.eventId == eventId } }
             .groupBy {
@@ -88,21 +98,30 @@ fun List<SeasonParticipant>.calculateMangekjemperRankings(mangekjemperRequiremen
             it.mangekjemperRank = mangekjempere.count()
         }
     }
+
+    // Set mangekjemper rankings for events not part of this particular seasonId (i.e other regions)
+    mangekjempere.flatMap { it.events }
+        .filterNot { seasonId == it.seasonId }
+        .forEach { ev -> ev.mangekjemperRank = mangekjempere.count() }
 }
 
 // Returns a list with pairs of Category and utilized rank-score
 fun SeasonParticipant.calculateSeasonPoints(
+    seasonId: Long,
     penaltyPoints: (Gender) -> Int = { if (it == Gender.MALE) 16 else 8 },
     expectedMangekjemperEvents: Int = 8,
     mangekjemperRequirement: (SeasonParticipant) -> Boolean
 ): List<Pair<Category?, Int>> {
-    if (mangekjemperRequirement(this)) {
+    if (mangekjemperRequirement(this)/* && mainSeasonId() == seasonId*/) {
         val physicalConditionCategory = events.first { it.category.name == "Kondisjon" }.category
         val ballCategory = events.first { it.category.name == "Balløvelser" }.category
         val techniqueCategory = events.first { it.category.name == "Teknikk" }.category
 
         val physicalConditionEventRankings =
-            events.asSequence().filter { it.category.name == "Kondisjon" }.map { it.mangekjemperRank!! }.sorted()
+            events.asSequence()
+                .filter { it.category.name == "Kondisjon" }
+                .map { it.mangekjemperRank!! }
+                .sorted()
                 .mapIndexed { index, i ->
                     if (index < 3) i else max(i, penaltyPoints(this.gender))
                 }.toMutableList()
@@ -140,7 +159,10 @@ fun SeasonParticipant.calculateSeasonPoints(
         seasonPoints = output.sumOf { it.second }
         return output
     } else {
-        val rankingsSorted = events.map { it.category to it.actualRank!! }.sortedBy { it.second }
+        val rankingsSorted = events
+            .filter { it.seasonId == seasonId }
+            .map { it.category to it.actualRank!! }
+            .sortedBy { it.second }
         val output = mutableListOf<Pair<Category?, Int>>()
         // Kan teknisk sett ha vært med på mange kondisjon og ball, men ingen teknikk
         output.addAll(rankingsSorted.subList(0, min(expectedMangekjemperEvents, rankingsSorted.count())))
@@ -243,12 +265,15 @@ data class SeasonParticipant(
     override fun compareTo(other: SeasonParticipant): Int = seasonRank.compareTo(other.seasonRank)
     override fun toString(): String =
         "${SeasonParticipant::class.qualifiedName}(personId=$personId, personName=\"$personName\")"
+
+    fun mainSeasonId() = events.groupBy { it.seasonId }.maxByOrNull { it.value.count() }!!.key
 }
 
 data class SeasonSimplifiedEvent(
     val eventName: String,
     val category: Category,
     val eventId: Long,
+    val seasonId: Long,
     val actualRank: Int? = null,
     val isAttendanceOnly: Boolean = false,
     var mangekjemperRank: Int? = null,
@@ -259,3 +284,10 @@ data class SeasonSimplifiedEvent(
         return "SeasonSimplifiedEvent(eventName=$eventName, category=${category.name}, eventId=$eventId, actualRank=$actualRank, isAttendanceOnly=$isAttendanceOnly, mangekjemperRank=$mangekjemperRank)"
     }
 }
+
+data class SeasonOtherRegionEvent(
+    val eventName: String,
+    val eventId: Long,
+    val seasonId: Long,
+    val category: Category,
+)

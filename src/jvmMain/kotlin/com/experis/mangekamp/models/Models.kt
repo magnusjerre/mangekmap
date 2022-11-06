@@ -71,10 +71,13 @@ class Season(
     var name: String,
     var startYear: Int,
     var mangekjemperRequiredEvents: Short,
+//    var region: Region,
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null
-)
+) {
+    fun region() = if (id!! > 1L) Region.TRONDHEIM else Region.OSLO
+}
 
 @Entity
 class Person(
@@ -104,4 +107,8 @@ class AdminUser(
 
 enum class Gender {
     MALE, FEMALE
+}
+
+enum class Region(val prettyName: String) {
+    OSLO("Oslo"), TRONDHEIM("Trondheim"), BERGEN("Bergen")
 }

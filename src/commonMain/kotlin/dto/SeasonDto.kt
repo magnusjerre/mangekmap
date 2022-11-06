@@ -46,4 +46,10 @@ class SeasonPostDto(
     var name: String,
     var startYear: Int,
     var mangekjemperRequiredEvents: Short,
+    var region: RegionDto
 )
+
+@Serializable
+enum class RegionDto {
+    OSLO, TRONDHEIM, BERGEN
+}

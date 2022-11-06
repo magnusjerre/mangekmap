@@ -8,6 +8,7 @@ import csstype.JustifyContent
 import csstype.Padding
 import csstype.em
 import csstype.px
+import dto.RegionDto
 import dto.SeasonPostDto
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
@@ -133,7 +134,7 @@ val SeasonEdit = FC<Props> {
                 onClick = {
                     mainScope.launch {
                         val seasonRequestDto =
-                            SeasonPostDto(seasonName, seasonYear.toInt(), mangekjemperRequiredEvents.toShort())
+                            SeasonPostDto(seasonName, seasonYear.toInt(), mangekjemperRequiredEvents.toShort(), RegionDto.OSLO)
                         val seasonResponseDto = if (seasonId == null) postSeason(seasonRequestDto) else putSeason(
                             seasonId,
                             seasonRequestDto

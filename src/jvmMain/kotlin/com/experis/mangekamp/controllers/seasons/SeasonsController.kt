@@ -5,6 +5,7 @@ import com.experis.mangekamp.controllers.events.toModel
 import com.experis.mangekamp.exceptions.ResourceNotFoundException
 import com.experis.mangekamp.repositories.CategoryRepository
 import com.experis.mangekamp.repositories.EventRepository
+import com.experis.mangekamp.repositories.ParticipantRepository
 import com.experis.mangekamp.repositories.SeasonRepository
 import dto.EventDto
 import dto.EventPostDto
@@ -26,15 +27,22 @@ import org.springframework.web.bind.annotation.RestController
 class SeasonsController(
     private val eventRepository: EventRepository,
     private val categoryRepository: CategoryRepository,
-    private val seasonRepository: SeasonRepository
+    private val seasonRepository: SeasonRepository,
+    private val participantRepository: ParticipantRepository
 ) {
 
     @GetMapping
     fun getSeasons(): List<SeasonDto> = seasonRepository.findAll().map { it.toDto() }
 
     @GetMapping("{id}")
-    fun getSeason(@PathVariable id: Long, @RequestParam excludeEvents: Boolean = false): SeasonDto =
-        seasonRepository.findById(id).orElseThrow { ResourceNotFoundException("Season with id $id not found") }.toDto()
+    fun getSeason(@PathVariable id: Long, @RequestParam excludeEvents: Boolean = false): SeasonDto {
+        val season = seasonRepository.findById(id).orElseThrow { ResourceNotFoundException("Season with id $id not found") }
+        val uniqueParticipantsForSeason = season.events.flatMap { it.participants }.map { it.id.person.id!! }.distinct()
+        val allParticipants = uniqueParticipantsForSeason.map { participantRepository.findAllByIdPersonIdAndIdEventSeasonStartYear(it, season.startYear) }.flatten()
+        val allEvents = allParticipants.map { it.id.event }.distinctBy { it.id }
+        allEvents.forEach { it.participants = it.participants.filter { p -> uniqueParticipantsForSeason.contains(p.id.person.id!!) } }
+        return season.toDto2(allEvents)
+    }
 
     @PostMapping
     fun postSeason(@RequestBody seasonDto: SeasonPostDto): SeasonDto {
