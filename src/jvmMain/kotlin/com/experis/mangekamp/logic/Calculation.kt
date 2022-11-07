@@ -15,16 +15,18 @@ fun List<Event>.calculateSeason(
 ): List<SeasonParticipant> {
     val participants = toSeasonParticipants(gender)
     participants.calculateMangekjemperRankings(seasonId, mangekjemperRequirement)
+    val totalMangekjempere = participants.count { it.isMangekjemper }
     participants.forEach {
         it.calculateSeasonPoints(
             seasonId,
             penaltyPoints,
             expectedMangekjemperEvents,
-            mangekjemperRequirement
+            mangekjemperRequirement,
+            totalMangekjempere
         )
     }
-    val participantsWithThisAsMainSeason = participants.filter { it.mainSeasonId() == seasonId }
-    participantsWithThisAsMainSeason.calculateSeasonRank(expectedMangekjemperEvents)
+    val participantsWithThisAsMainSeason = participants.filter { it.events.any { ev -> ev.seasonId == seasonId } }
+    participantsWithThisAsMainSeason.calculateSeasonRank(seasonId, expectedMangekjemperEvents)
     return participantsWithThisAsMainSeason.sorted()
 }
 
@@ -56,7 +58,7 @@ private fun List<Event>.toSeasonParticipants(gender: Gender): List<SeasonPartici
         }
 }
 fun List<SeasonParticipant>.calculateMangekjemperRankings(seasonId: Long, mangekjemperRequirement: (SeasonParticipant) -> Boolean) {
-    val mangekjempere = this.filter { mangekjemperRequirement(it) }
+    val mangekjempere = this.filter { mangekjemperRequirement(it) && it.events.any { ev -> ev.seasonId == seasonId } }
     mangekjempere.forEach { it.isMangekjemper = true }
     val eventIds = mangekjempere.flatMap { it.events }.filter { ev -> ev.seasonId == seasonId }.map { it.eventId }.distinct()
     var counter = 1
@@ -107,9 +109,10 @@ fun SeasonParticipant.calculateSeasonPoints(
     seasonId: Long,
     penaltyPoints: (Gender) -> Int = { if (it == Gender.MALE) 16 else 8 },
     expectedMangekjemperEvents: Int = 8,
-    mangekjemperRequirement: (SeasonParticipant) -> Boolean
+    mangekjemperRequirement: (SeasonParticipant) -> Boolean,
+    totalMangekjempere: Int = 1,
 ): List<Pair<Category?, Int>> {
-    if (mangekjemperRequirement(this) && mainSeasonId() == seasonId) {
+    if (mangekjemperRequirement(this) /*&& mainSeasonId() == seasonId*/) {
         val physicalConditionCategory = events.first { it.category.name == "Kondisjon" }.category
         val ballCategory = events.first { it.category.name == "Balløvelser" }.category
         val techniqueCategory = events.first { it.category.name == "Teknikk" }.category
@@ -117,18 +120,23 @@ fun SeasonParticipant.calculateSeasonPoints(
         val physicalConditionEventRankings =
             events.asSequence()
                 .filter { it.category.name == "Kondisjon" }
-                .map { it.mangekjemperRank!! }
+                .map { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
                 .sorted()
                 .mapIndexed { index, i ->
                     if (index < 3) i else max(i, penaltyPoints(this.gender))
                 }.toMutableList()
         val ballEventsRankings =
-            events.asSequence().filter { it.category.name == "Balløvelser" }.map { it.mangekjemperRank!! }.sorted()
+            events.asSequence().filter { it.category.name == "Balløvelser" }
+                .map { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
+                .sorted()
                 .mapIndexed { index, i ->
                     if (index < 3) i else max(i, penaltyPoints(this.gender))
                 }.toMutableList()
         val techniqueEventsRankings =
-            events.filter { it.category.name == "Teknikk" }.map { it.mangekjemperRank!! }.sorted().toMutableList()
+            events.filter { it.category.name == "Teknikk" }
+                .map { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
+                .sorted()
+                .toMutableList()
 
         val output = mutableListOf<Pair<Category?, Int>>()
 
@@ -158,7 +166,7 @@ fun SeasonParticipant.calculateSeasonPoints(
     } else {
         val rankingsSorted = events
             .filter { it.seasonId == seasonId }
-            .map { it.category to it.actualRank!! }
+            .map { it.category to (it.mangekjemperRank ?: it.actualRank!!) }
             .sortedBy { it.second }
         val output = mutableListOf<Pair<Category?, Int>>()
         // Kan teknisk sett ha vært med på mange kondisjon og ball, men ingen teknikk
@@ -171,16 +179,16 @@ fun SeasonParticipant.calculateSeasonPoints(
     }
 }
 
-fun List<SeasonParticipant>.calculateSeasonRank(expectedMangekjemperEvents: Int = 8) {
+fun List<SeasonParticipant>.calculateSeasonRank(seasonId: Long, expectedMangekjemperEvents: Int = 8) {
     // First pass, will later need to recalculate between those with same ranks
     val sortedSeasonParticipants = sortedBy {
-        recalculateSeasonScore(it, expectedMangekjemperEvents)
+        recalculateSeasonScore(it, seasonId, expectedMangekjemperEvents)
     }
     var rank = 1
     var previousRank = 1
     var previousScore = 0
     for (seasonParticipant in sortedSeasonParticipants) {
-        val recalculatedScore = recalculateSeasonScore(seasonParticipant, expectedMangekjemperEvents)
+        val recalculatedScore = recalculateSeasonScore(seasonParticipant, seasonId, expectedMangekjemperEvents)
         if (recalculatedScore == previousScore) {
             seasonParticipant.seasonRank = previousRank
         } else {
@@ -203,7 +211,8 @@ fun List<SeasonParticipant>.calculateSeasonRank(expectedMangekjemperEvents: Int 
                 val aRank = aRankCount.removeFirst()
                 val bRank = bRankCount.removeFirst()
                 if (aRank.first < bRank.first) return@sortWith -1
-                if (aRank.first == bRank.first && aRank.second != bRank.second) {
+                if (aRank.first > bRank.first) return@sortWith 1
+                if (aRank.second != bRank.second) {
                     // Using minus here since we want the one with the most occurrences to come first
                     return@sortWith -aRank.second.compareTo(bRank.second)
                 }
@@ -228,12 +237,12 @@ fun List<SeasonParticipant>.calculateSeasonRank(expectedMangekjemperEvents: Int 
     }
 }
 
-private fun recalculateSeasonScore(it: SeasonParticipant, expectedMangekjemperEvents: Int) =
-    if (it.isMangekjemper) {
+private fun recalculateSeasonScore(it: SeasonParticipant, seasonId: Long, expectedMangekjemperEvents: Int) =
+    if (it.isMangekjemper && it.mainSeasonId() == seasonId) {
         it.seasonPoints
     } else {
         1000 + (expectedMangekjemperEvents - min(
-            it.events.count(),
+            it.events.count(),// { it.seasonId == seasonId },
             expectedMangekjemperEvents
         )) * 1000 + it.seasonPoints
     }
@@ -263,7 +272,7 @@ data class SeasonParticipant(
     override fun toString(): String =
         "${SeasonParticipant::class.qualifiedName}(personId=$personId, personName=\"$personName\")"
 
-    fun mainSeasonId() = events.groupBy { it.seasonId }.maxByOrNull { it.value.count() }!!.key
+    fun mainSeasonId() = events.groupBy { it.seasonId }.maxByOrNull { it.value.count() }?.key ?: -1
 }
 
 data class SeasonSimplifiedEvent(

@@ -41,6 +41,7 @@ import react.key
 import react.router.dom.Link
 
 external interface SeasonResultTableProps : Props {
+    var seasonId: Long
     var events: List<SimpleEventDto>
     var participants: List<SeasonParticipantDto>
 }
@@ -129,7 +130,20 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
                                 }
                             }
                             TableCell { +participant.name }
-                            CenteredTableCell { +"${participant.results.size}" }
+                            CenteredTableCell {
+                                val otherSeasonsEvents = participant.results.filter { it.seasonId != props.seasonId }.size
+                                if (otherSeasonsEvents == 0)
+                                    +"${participant.results.size}"
+                                else {
+                                    val realEvents = participant.results.filter { it.seasonId == props.seasonId }.size
+                                    Tooltip {
+                                        title = ReactNode("Deltaker har $realEvents øvelse(r) i denne regionen og $otherSeasonsEvents i andre regioner")
+                                        span {
+                                            +"$realEvents + $otherSeasonsEvents"
+                                        }
+                                    }
+                                }
+                            }
                             CenteredTableCell { +"${participant.seasonPoints}" }
                             CenteredTableCell {
                                 if (participant.isMangekjemper)

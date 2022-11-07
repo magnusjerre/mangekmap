@@ -32,7 +32,7 @@ class SeasonsController(
 ) {
 
     @GetMapping
-    fun getSeasons(): List<SeasonDto> = seasonRepository.findAll().map { it.toDto() }
+    fun getSeasons(): List<SeasonDto> = seasonRepository.findAll().map { it.toDto(it.events) }
 
     @GetMapping("{id}")
     fun getSeason(@PathVariable id: Long, @RequestParam excludeEvents: Boolean = false): SeasonDto {
@@ -41,12 +41,12 @@ class SeasonsController(
         val allParticipants = uniqueParticipantsForSeason.map { participantRepository.findAllByIdPersonIdAndIdEventSeasonStartYear(it, season.startYear) }.flatten()
         val allEvents = allParticipants.map { it.id.event }.distinctBy { it.id }
         allEvents.forEach { it.participants = it.participants.filter { p -> uniqueParticipantsForSeason.contains(p.id.person.id!!) } }
-        return season.toDto2(allEvents)
+        return season.toDto(allEvents)
     }
 
     @PostMapping
     fun postSeason(@RequestBody seasonDto: SeasonPostDto): SeasonDto {
-        return seasonRepository.save(seasonDto.toModel()).toDto()
+        return seasonRepository.save(seasonDto.toModel()).let { it.toDto(it.events) }
     }
 
     @PatchMapping("{id}")
@@ -58,7 +58,7 @@ class SeasonsController(
         season.startYear = seasonDto.startYear
         season.mangekjemperRequiredEvents = seasonDto.mangekjemperRequiredEvents
 
-        return seasonRepository.save(season).toDto()
+        return seasonRepository.save(season).toDto(season.events)
     }
 
     @PostMapping("{id}/events")

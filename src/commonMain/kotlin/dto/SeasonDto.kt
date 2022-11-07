@@ -27,7 +27,7 @@ data class SeasonParticipantDto(
 )
 
 @Serializable
-data class EventResultDto(val eventId: Long, val actualRank: Int?, val isAttendanceOnly: Boolean?, val mangekjemperRank: Int?) {
+data class EventResultDto(val eventId: Long, val seasonId: Long, val actualRank: Int?, val isAttendanceOnly: Boolean?, val mangekjemperRank: Int?) {
     fun prettyResult(): String {
         val actualRankPretty = if (actualRank != null) {
             "- ($actualRank)${if (isAttendanceOnly == true) "*" else ""}"

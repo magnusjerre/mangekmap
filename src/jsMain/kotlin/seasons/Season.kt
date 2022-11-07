@@ -98,6 +98,7 @@ val Season = FC<Props> {
         SeasonResultTable {
             events = season.events
             participants = female
+            this.seasonId = seasonId
         }
 
         Box {
@@ -109,6 +110,7 @@ val Season = FC<Props> {
         SeasonResultTable {
             events = season.events
             participants = male
+            this.seasonId = seasonId
         }
     }
 }

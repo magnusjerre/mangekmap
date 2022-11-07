@@ -103,7 +103,7 @@ class CsvImportController(
             participantRepository.flush()
         }
 
-        return seasonRepository.findByIdOrNull(season.id!!)!!.toDto()
+        return seasonRepository.findByIdOrNull(season.id!!)!!.toDto(emptyList())
     }
 
 }

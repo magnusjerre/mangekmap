@@ -7,32 +7,14 @@ import com.experis.mangekamp.logic.SeasonSimplifiedEvent
 import com.experis.mangekamp.logic.calculateSeason
 import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Gender
-import com.experis.mangekamp.models.Region
 import com.experis.mangekamp.models.Season
 import dto.EventResultDto
-import dto.RegionDto
 import dto.SeasonDto
 import dto.SeasonParticipantDto
 import dto.SeasonPostDto
 import dto.SimpleEventDto
 
-fun Season.toDto(excludeEvents: Boolean = false): SeasonDto {
-//    val malesResult =
-//        events.calculateSeason(seasonId = id!!, gender = Gender.MALE, expectedMangekjemperEvents = mangekjemperRequiredEvents.toInt())
-//    val femalesResult =
-//        events.calculateSeason(seasonId = id!!, gender = Gender.FEMALE, expectedMangekjemperEvents = mangekjemperRequiredEvents.toInt())
-
-    return SeasonDto(
-        events = if (excludeEvents) emptyList() else events.sortedBy { it.date }.map(Event::toDtoSimple),
-        participants = emptyList(),//malesResult + femalesResult).map(SeasonParticipant::toDto),
-        name = name,
-        startYear = startYear,
-        mangekjemperRequiredEvents = mangekjemperRequiredEvents,
-        id = id
-    )
-}
-
-fun Season.toDto2(allEvents: List<Event>): SeasonDto {
+fun Season.toDto(allEvents: List<Event>): SeasonDto {
     val malesResult = allEvents.calculateSeason(
         seasonId = id!!,
         gender = Gender.MALE,
@@ -72,6 +54,7 @@ fun SeasonParticipant.toDto(): SeasonParticipantDto = SeasonParticipantDto(
 
 fun SeasonSimplifiedEvent.toDto(): EventResultDto = EventResultDto(
     eventId = eventId,
+    seasonId = seasonId,
     actualRank = actualRank,
     isAttendanceOnly = isAttendanceOnly,
     mangekjemperRank = mangekjemperRank
