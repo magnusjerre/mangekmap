@@ -8,9 +8,11 @@ import com.experis.mangekamp.logic.calculateSeason
 import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Gender
 import com.experis.mangekamp.models.Season
+import dto.EventPointsReasonDto
 import dto.EventResultDto
 import dto.SeasonDto
 import dto.SeasonParticipantDto
+import dto.SeasonPenaltyPointsDto
 import dto.SeasonPostDto
 import dto.SimpleEventDto
 
@@ -48,6 +50,7 @@ fun SeasonParticipant.toDto(): SeasonParticipantDto = SeasonParticipantDto(
     gender = gender.toDto(),
     seasonRank = seasonRank,
     seasonPoints = seasonPoints,
+    seasonPenaltyPoints = seasonPenaltyPoints?.let { SeasonPenaltyPointsDto(it.pointsPerMissingEvent, it.numberOfMissingEvents) },
     isMangekjemper = isMangekjemper,
     results = this.events.map(SeasonSimplifiedEvent::toDto)
 )
@@ -56,6 +59,9 @@ fun SeasonSimplifiedEvent.toDto(): EventResultDto = EventResultDto(
     eventId = eventId,
     seasonId = seasonId,
     actualRank = actualRank,
+    eventPoints = eventPoints,
+    eventCategoryName = category.name,
+    eventPointsReason = eventPointsReason?.let { d -> EventPointsReasonDto.values().find { it.ordinal == d.ordinal } },
     isAttendanceOnly = isAttendanceOnly,
     mangekjemperRank = mangekjemperRank
 )
@@ -65,9 +71,4 @@ fun SeasonPostDto.toModel(): Season = Season(
     name = name,
     startYear = startYear,
     mangekjemperRequiredEvents = mangekjemperRequiredEvents,
-//    region = when(region) {
-//        RegionDto.OSLO -> Region.OSLO
-//        RegionDto.TRONDHEIM -> Region.TRONDHEIM
-//        RegionDto.BERGEN -> Region.BERGEN
-//    }
 )

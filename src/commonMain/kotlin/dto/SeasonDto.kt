@@ -22,12 +22,30 @@ data class SeasonParticipantDto(
     val gender: GenderDto,
     val seasonRank: Int,
     val seasonPoints: Int,
+    val seasonPenaltyPoints: SeasonPenaltyPointsDto?,
     val isMangekjemper: Boolean,
     val results: List<EventResultDto>,
 )
 
 @Serializable
-data class EventResultDto(val eventId: Long, val seasonId: Long, val actualRank: Int?, val isAttendanceOnly: Boolean?, val mangekjemperRank: Int?) {
+data class SeasonPenaltyPointsDto(
+    val pointsPerMissingEvent: Int,
+    val numberOfMissingEvents: Int
+) {
+    val penaltyPoints: Int = pointsPerMissingEvent * numberOfMissingEvents
+}
+
+
+@Serializable
+data class EventResultDto(
+    val eventId: Long,
+    val seasonId: Long,
+    val actualRank: Int?,
+    val eventPoints: Int,
+    val eventCategoryName: String,
+    val eventPointsReason: EventPointsReasonDto?,
+    val isAttendanceOnly: Boolean?,
+    val mangekjemperRank: Int?) {
     fun prettyResult(): String {
         val actualRankPretty = if (actualRank != null) {
             "- ($actualRank)${if (isAttendanceOnly == true) "*" else ""}"
@@ -52,4 +70,9 @@ class SeasonPostDto(
 @Serializable
 enum class RegionDto {
     OSLO, TRONDHEIM, BERGEN
+}
+
+@Serializable
+enum class EventPointsReasonDto {
+    NOT_INCLUDED, NOT_MANGEKJEMPER, MANGEKJEMPER, MANGEKJEMPER_TOO_MANY_OF_SAME, OTHER_REGION_NOT_MANGEKJEMPER, OTHER_REGION_MANGEKJEMPER, OTHER_REGION_NOT_INCLUDED
 }

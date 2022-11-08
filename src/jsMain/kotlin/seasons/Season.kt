@@ -99,6 +99,8 @@ val Season = FC<Props> {
             events = season.events
             participants = female
             this.seasonId = seasonId
+            mangekjemperRequiredEvents = season.mangekjemperRequiredEvents.toInt()
+            this.categories = categories
         }
 
         Box {
@@ -111,6 +113,8 @@ val Season = FC<Props> {
             events = season.events
             participants = male
             this.seasonId = seasonId
+            mangekjemperRequiredEvents = season.mangekjemperRequiredEvents.toInt()
+            this.categories = categories
         }
     }
 }

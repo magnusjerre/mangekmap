@@ -104,15 +104,15 @@ fun List<SeasonParticipant>.calculateMangekjemperRankings(seasonId: Long, mangek
         .forEach { ev -> ev.mangekjemperRank = mangekjempere.count() }
 }
 
-// Returns a list with pairs of Category and utilized rank-score
+// Returns a list with pairs of Category and utilized SeasonSimplifiedEvents
 fun SeasonParticipant.calculateSeasonPoints(
     seasonId: Long,
     penaltyPoints: (Gender) -> Int = { if (it == Gender.MALE) 16 else 8 },
     expectedMangekjemperEvents: Int = 8,
     mangekjemperRequirement: (SeasonParticipant) -> Boolean,
     totalMangekjempere: Int = 1,
-): List<Pair<Category?, Int>> {
-    if (mangekjemperRequirement(this) /*&& mainSeasonId() == seasonId*/) {
+): List<Pair<Category?, SeasonSimplifiedEvent>> {
+    if (mangekjemperRequirement(this)) {
         val physicalConditionCategory = events.first { it.category.name == "Kondisjon" }.category
         val ballCategory = events.first { it.category.name == "Balløvelser" }.category
         val techniqueCategory = events.first { it.category.name == "Teknikk" }.category
@@ -120,37 +120,49 @@ fun SeasonParticipant.calculateSeasonPoints(
         val physicalConditionEventRankings =
             events.asSequence()
                 .filter { it.category.name == "Kondisjon" }
-                .map { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
-                .sorted()
-                .mapIndexed { index, i ->
-                    if (index < 3) i else max(i, penaltyPoints(this.gender))
-                }.toMutableList()
-        val ballEventsRankings =
-            events.asSequence().filter { it.category.name == "Balløvelser" }
-                .map { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
-                .sorted()
-                .mapIndexed { index, i ->
-                    if (index < 3) i else max(i, penaltyPoints(this.gender))
-                }.toMutableList()
+                .sortedBy { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
+                .toMutableList()
+        physicalConditionEventRankings.forEachIndexed { index, event ->
+            if (index < 3) {
+                event.eventPoints = if (event.seasonId == seasonId) event.mangekjemperRank!! else totalMangekjempere
+                event.eventPointsReason = if (event.seasonId == seasonId) PointsReason.MANGEKJEMPER else PointsReason.OTHER_REGION_MANGEKJEMPER
+            } else {
+                event.eventPoints = max(penaltyPoints(this.gender), event.mangekjemperRank ?: event.actualRank!!)
+                event.eventPointsReason = PointsReason.MANGEKJEMPER_TOO_MANY_OF_SAME
+            }
+        }
+        val ballEventsRankings = events.asSequence()
+            .filter { it.category.name == "Balløvelser" }
+            .sortedBy { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
+            .toMutableList()
+        ballEventsRankings.forEachIndexed { index, event ->
+            if (index < 3) {
+                event.eventPoints = if (event.seasonId == seasonId) event.mangekjemperRank!! else totalMangekjempere
+                event.eventPointsReason = if (event.seasonId == seasonId) PointsReason.MANGEKJEMPER else PointsReason.OTHER_REGION_MANGEKJEMPER
+            } else {
+                event.eventPoints = max(penaltyPoints(this.gender), event.mangekjemperRank ?: event.actualRank!!)
+                event.eventPointsReason = PointsReason.MANGEKJEMPER_TOO_MANY_OF_SAME
+            }
+        }
         val techniqueEventsRankings =
             events.filter { it.category.name == "Teknikk" }
-                .map { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
-                .sorted()
+                .sortedBy { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
                 .toMutableList()
+        techniqueEventsRankings.forEachIndexed { index, event ->
+            event.eventPoints = if (event.seasonId == seasonId) event.mangekjemperRank!! else totalMangekjempere
+            event.eventPointsReason = if (event.seasonId == seasonId) PointsReason.MANGEKJEMPER else PointsReason.OTHER_REGION_MANGEKJEMPER
+        }
 
-        val output = mutableListOf<Pair<Category?, Int>>()
+        val output = mutableListOf<Pair<Category?, SeasonSimplifiedEvent>>()
 
         output.add(techniqueCategory to techniqueEventsRankings.removeFirst())
-        if (techniqueEventsRankings.isNotEmpty()) {
-            output.add(techniqueCategory to techniqueEventsRankings.removeFirst())
-        }
         output.add(physicalConditionCategory to physicalConditionEventRankings.removeFirst())
         output.add(ballCategory to ballEventsRankings.removeFirst())
 
-        for (i in output.count() until expectedMangekjemperEvents) {
-            val p = physicalConditionEventRankings.firstOrNull() ?: Int.MAX_VALUE
-            val b = ballEventsRankings.firstOrNull() ?: Int.MAX_VALUE
-            val t = techniqueEventsRankings.firstOrNull() ?: Int.MAX_VALUE
+        while (output.count() < expectedMangekjemperEvents && (physicalConditionEventRankings.isNotEmpty() || ballEventsRankings.isNotEmpty() || techniqueEventsRankings.isNotEmpty())) {
+            val p = physicalConditionEventRankings.firstOrNull()?.eventPoints ?: Int.MAX_VALUE
+            val b = ballEventsRankings.firstOrNull()?.eventPoints ?: Int.MAX_VALUE
+            val t = techniqueEventsRankings.firstOrNull()?.eventPoints ?: Int.MAX_VALUE
 
             if (p < b && p < t) {
                 output.add(physicalConditionCategory to physicalConditionEventRankings.removeFirst())
@@ -161,20 +173,25 @@ fun SeasonParticipant.calculateSeasonPoints(
             }
         }
 
-        seasonPoints = output.sumOf { it.second }
+        (physicalConditionEventRankings + ballEventsRankings + techniqueEventsRankings).forEach {
+            it.eventPointsReason = if (it.seasonId == seasonId) PointsReason.NOT_INCLUDED else PointsReason.OTHER_REGION_NOT_INCLUDED
+        }
+        seasonPoints = output.filterNot { it.second.eventPointsReason == PointsReason.NOT_INCLUDED }.sumOf { it.second.eventPoints }
         return output
     } else {
-        val rankingsSorted = events
-            .filter { it.seasonId == seasonId }
-            .map { it.category to (it.mangekjemperRank ?: it.actualRank!!) }
-            .sortedBy { it.second }
-        val output = mutableListOf<Pair<Category?, Int>>()
-        // Kan teknisk sett ha vært med på mange kondisjon og ball, men ingen teknikk
-        output.addAll(rankingsSorted.subList(0, min(expectedMangekjemperEvents, rankingsSorted.count())))
-        if (output.count() < expectedMangekjemperEvents) {
-            output.add(null to expectedMangekjemperEvents * (expectedMangekjemperEvents - output.count()))
+        events.forEach {
+            it.eventPoints = if (it.seasonId == seasonId) it.actualRank!! else penaltyPoints(gender)
+            it.eventPointsReason = if (it.seasonId == seasonId) PointsReason.NOT_MANGEKJEMPER else PointsReason.OTHER_REGION_NOT_MANGEKJEMPER
         }
-        seasonPoints = output.sumOf { it.second }
+        val rankingsSortedNew = events.sortedBy { it.eventPoints }
+
+        val output = rankingsSortedNew.subList(0, min(expectedMangekjemperEvents, rankingsSortedNew.count())).map { it.category to it }
+
+        if (output.count() < expectedMangekjemperEvents) {
+            this.seasonPenaltyPoints = SeasonPenaltyPoints(expectedMangekjemperEvents, expectedMangekjemperEvents - output.count())
+        }
+
+        seasonPoints = output.sumOf { it.second.eventPoints } + (seasonPenaltyPoints?.penaltyPoints ?: 0)
         return output
     }
 }
@@ -242,7 +259,7 @@ private fun recalculateSeasonScore(it: SeasonParticipant, seasonId: Long, expect
         it.seasonPoints
     } else {
         1000 + (expectedMangekjemperEvents - min(
-            it.events.count(),// { it.seasonId == seasonId },
+            it.events.count { it.seasonId == seasonId },
             expectedMangekjemperEvents
         )) * 1000 + it.seasonPoints
     }
@@ -266,6 +283,7 @@ data class SeasonParticipant(
     var seasonRank: Int,
     var seasonPoints: Int,
     val events: List<SeasonSimplifiedEvent>,
+    var seasonPenaltyPoints: SeasonPenaltyPoints? = null,
     var isMangekjemper: Boolean = false
 ) : Comparable<SeasonParticipant> {
     override fun compareTo(other: SeasonParticipant): Int = seasonRank.compareTo(other.seasonRank)
@@ -283,6 +301,8 @@ data class SeasonSimplifiedEvent(
     val actualRank: Int? = null,
     val isAttendanceOnly: Boolean = false,
     var mangekjemperRank: Int? = null,
+    var eventPoints: Int = 0,
+    var eventPointsReason: PointsReason? = null,
     val teamNumber: Int? = null,
     val isTeamBased: Boolean = false
 ) {
@@ -291,9 +311,13 @@ data class SeasonSimplifiedEvent(
     }
 }
 
-data class SeasonOtherRegionEvent(
-    val eventName: String,
-    val eventId: Long,
-    val seasonId: Long,
-    val category: Category,
-)
+data class SeasonPenaltyPoints(
+    val pointsPerMissingEvent: Int,
+    val numberOfMissingEvents: Int
+) {
+    val penaltyPoints: Int = pointsPerMissingEvent * numberOfMissingEvents
+}
+
+enum class PointsReason {
+    NOT_INCLUDED, NOT_MANGEKJEMPER, MANGEKJEMPER, MANGEKJEMPER_TOO_MANY_OF_SAME, OTHER_REGION_NOT_MANGEKJEMPER, OTHER_REGION_MANGEKJEMPER, OTHER_REGION_NOT_INCLUDED
+}

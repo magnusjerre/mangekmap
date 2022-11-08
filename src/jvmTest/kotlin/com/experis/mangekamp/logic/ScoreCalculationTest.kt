@@ -118,19 +118,20 @@ class ScoreCalculationTest {
             teknikk to 12,
             teknikk to 15,
         ).toSeasonParticipant()
-        val seasonPointsUsed = participant.calculateSeasonPoints(1, penaltyPoints, mangekjemperRequirement = simpleMangekjemperRequirement).doSort()
+        val seasonPointsUsed = participant.calculateSeasonPoints(1, penaltyPoints, mangekjemperRequirement = simpleMangekjemperRequirement).map { it.first to it.second.eventPoints }.doSort()
         seasonPointsUsed.count() shouldBe 8
         seasonPointsUsed shouldBe listOf(
             kondisjon to 1,
-            kondisjon to 2,
-            kondisjon to 4,
+            kondisjon to 1,
+            kondisjon to 3,
             ball to 1,
             ball to 1,
-            ball to 6,
-            teknikk to 12,
-            teknikk to 15
+            ball to 5,
+            teknikk to 11,
+            teknikk to 14
         )
-        participant.seasonPoints shouldBe 42
+        participant.seasonPenaltyPoints shouldBe null
+        participant.seasonPoints shouldBe 37
     }
 
     private val simpleMangekjemperRequirement: (SeasonParticipant) -> Boolean = { it.isMangekjemper }
@@ -157,8 +158,8 @@ class ScoreCalculationTest {
                 category = category,
                 eventId = (index + 1).toLong(),
                 seasonId = 1,
-                actualRank = if (isMangekjemper) (rank - 1).coerceAtLeast(1) else rank,
-                mangekjemperRank = rank,
+                actualRank = rank,
+                mangekjemperRank = if (isMangekjemper) (rank - 1).coerceAtLeast(1) else rank,
             )
         }
     )
@@ -175,20 +176,23 @@ class ScoreCalculationTest {
             ball to 19,
             teknikk to 5,
         ).toSeasonParticipant()
-        val seasonPointsUsed = participant.calculateSeasonPoints(1, penaltyPoints, mangekjemperRequirement = simpleMangekjemperRequirement).doSort()
+        val seasonPointsUsed =
+            participant.calculateSeasonPoints(1, penaltyPoints, mangekjemperRequirement = simpleMangekjemperRequirement)
+                .map { it.first to it.second.eventPoints }.doSort()
         seasonPointsUsed.shouldBe(
             listOf(
                 kondisjon to 1,
                 kondisjon to 1,
-                kondisjon to 2,
+                kondisjon to 1, // See toSeasonParticipant subtracts 1 from actualRank to mangekjemeprRank
                 kondisjon to penaltyPoints(participant.gender),
-                kondisjon to 19,
-                ball to 8,
-                ball to 19,
-                teknikk to 5,
+                kondisjon to 18, // See toSeasonParticipant subtracts 1 from actualRank to mangekjemeprRank
+                ball to 7,
+                ball to 18,
+                teknikk to 4,
             )
         )
-        participant.seasonPoints shouldBe 71
+        participant.seasonPenaltyPoints shouldBe null
+        participant.seasonPoints shouldBe 66
     }
 
     @Test
@@ -203,20 +207,20 @@ class ScoreCalculationTest {
             ball to 14,
             teknikk to 5,
         ).toSeasonParticipant()
-        val seasonPointsUsed = participant.calculateSeasonPoints(1, penaltyPoints, mangekjemperRequirement = simpleMangekjemperRequirement).doSort()
+        val seasonPointsUsed = participant.calculateSeasonPoints(1, penaltyPoints, mangekjemperRequirement = simpleMangekjemperRequirement).map { it.first to it.second.eventPoints }.doSort()
         seasonPointsUsed.shouldBe(
             listOf(
                 kondisjon to 1,
-                kondisjon to 2,
+                kondisjon to 1,
                 ball to 1,
-                ball to 4,
-                ball to 6,
+                ball to 3,
+                ball to 5,
                 ball to penaltyPoints(participant.gender),
-                ball to 18,
-                teknikk to 5,
+                ball to 17,
+                teknikk to 4,
             )
         )
-        participant.seasonPoints shouldBe 53
+        participant.seasonPoints shouldBe 48
     }
 
     val penaltyPoints: (Gender) -> Int = { if (it == Gender.MALE) 16 else 8 }
@@ -227,8 +231,9 @@ class ScoreCalculationTest {
             kondisjon to 1
         ).toSeasonParticipant(isMangekjemper = false)
         val seasonPointsUsed1 =
-            participant1Event.calculateSeasonPoints(1, penaltyPoints, expectedMangekjemperEvents = 8, mangekjemperRequirement = simpleMangekjemperRequirement).doSort()
-        seasonPointsUsed1.shouldBe(listOf(kondisjon to 1, null to 56))
+            participant1Event.calculateSeasonPoints(1, penaltyPoints, expectedMangekjemperEvents = 8, mangekjemperRequirement = simpleMangekjemperRequirement).map { it.first to it.second.eventPoints }.doSort()
+        seasonPointsUsed1.shouldBe(listOf(kondisjon to 1))
+        participant1Event.seasonPenaltyPoints shouldBe SeasonPenaltyPoints(pointsPerMissingEvent = 8, numberOfMissingEvents = 7)
         participant1Event.seasonPoints shouldBe 57
 
         val participant3Event = listOf(
@@ -237,15 +242,15 @@ class ScoreCalculationTest {
             teknikk to 4,
         ).toSeasonParticipant(isMangekjemper = false) // Får feil her fordi det gjøres noe logikk rundt mangekjemper-verdien
         val seasonPointsUsed3 =
-            participant3Event.calculateSeasonPoints(1, penaltyPoints, expectedMangekjemperEvents = 8, mangekjemperRequirement = simpleMangekjemperRequirement)
+            participant3Event.calculateSeasonPoints(1, penaltyPoints, expectedMangekjemperEvents = 8, mangekjemperRequirement = simpleMangekjemperRequirement).map { it.first to it.second.eventPoints }.doSort()
         seasonPointsUsed3.shouldBe(
             listOf(
                 kondisjon to 1,
                 ball to 2,
                 teknikk to 4,
-                null to 40
             )
         )
+        participant3Event.seasonPenaltyPoints shouldBe SeasonPenaltyPoints(pointsPerMissingEvent = 8, numberOfMissingEvents = 5)
         participant3Event.seasonPoints shouldBe 47
     }
 
@@ -600,14 +605,32 @@ class ScoreCalculationTest {
         val donaldMain = resultsMain.find { it.personName == "Donald Duck" }!!
         donaldMain.shouldHave(name = "Donald Duck", seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
         donaldMain.shouldHaveMangekjemperRanks(listOf(1.b, 1.k, 1.b, 1.t), eventsMainRegion)
+        donaldMain.events.find { it.eventName == "Minigolf" }!!.eventPointsReason shouldBe PointsReason.MANGEKJEMPER
+        donaldMain.events.find { it.eventName == "Orientering" }!!.eventPointsReason shouldBe PointsReason.MANGEKJEMPER
+        donaldMain.events.find { it.eventName == "Bordtennis" }!!.eventPointsReason shouldBe PointsReason.MANGEKJEMPER
+        donaldMain.events.find { it.eventName == "Frisbeegolf" }!!.eventPointsReason shouldBe PointsReason.MANGEKJEMPER
         val oleMain = resultsMain.find { it.personName == "Ole" }!!
-        oleMain.shouldHave(name = "Ole", seasonRank = 4, seasonPoints = 13, mangekjemperStatus = false)
+        oleMain.shouldHave(name = "Ole", seasonRank = 3, seasonPoints = 37, mangekjemperStatus = false)
         oleMain.shouldHaveMangekjemperRanks(listOf(0.b, 0.k, 0.b, 0.t), eventsMainRegion)
+        oleMain.events.find { it.eventName == "Orientering" }!!.eventPointsReason shouldBe PointsReason.NOT_MANGEKJEMPER
+        oleMain.events.find { it.eventName == "Frisbeegolf" }!!.eventPointsReason shouldBe PointsReason.NOT_MANGEKJEMPER
+        oleMain.events.find { it.eventName == "Roing" }!!.eventPointsReason shouldBe PointsReason.OTHER_REGION_NOT_MANGEKJEMPER
+        oleMain.events.find { it.eventName == "E-sport" }!!.eventPointsReason shouldBe PointsReason.OTHER_REGION_NOT_MANGEKJEMPER
+        oleMain.seasonPenaltyPoints shouldBe null
         val doleMain = resultsMain.find { it.personName == "Dole" }!!
-        doleMain.shouldHave(name = "Dole", seasonRank = 2, seasonPoints = 10, mangekjemperStatus = true)
+        doleMain.shouldHave(name = "Dole", seasonRank = 4, seasonPoints = 10, mangekjemperStatus = true)
         doleMain.shouldHaveMangekjemperRanks(listOf(0.b, 1.k, 0.b, 0.t), eventsMainRegion)
+        doleMain.events.find { it.eventName == "Orientering" }!!.eventPointsReason shouldBe PointsReason.MANGEKJEMPER
+        doleMain.events.find { it.eventName == "Roing" }!!.eventPointsReason shouldBe PointsReason.OTHER_REGION_MANGEKJEMPER
+        doleMain.events.find { it.eventName == "Poker" }!!.eventPointsReason shouldBe PointsReason.OTHER_REGION_MANGEKJEMPER
+        doleMain.events.find { it.eventName == "Tennis Double" }!!.eventPointsReason shouldBe PointsReason.OTHER_REGION_MANGEKJEMPER
         val doffenMain = resultsMain.find { it.personName == "Doffen" }!!
-        doffenMain.shouldHave(name = "Doffen", seasonRank = 3, seasonPoints = 11, mangekjemperStatus = true)
+        doffenMain.shouldHave(name = "Doffen", seasonRank = 2, seasonPoints = 11, mangekjemperStatus = true)
+        doffenMain.events.find { it.eventName == "Orientering" }!!.eventPointsReason shouldBe PointsReason.MANGEKJEMPER
+        doffenMain.events.find { it.eventName == "Bordtennis" }!!.eventPointsReason shouldBe PointsReason.MANGEKJEMPER
+        doffenMain.events.find { it.eventName == "E-sport" }!!.eventPointsReason shouldBe PointsReason.OTHER_REGION_MANGEKJEMPER
+        doffenMain.events.find { it.eventName == "Tennis Double" }!!.eventPointsReason shouldBe PointsReason.OTHER_REGION_MANGEKJEMPER
+        doffenMain.events.find { it.eventName == "Padel" }!!.eventPointsReason shouldBe PointsReason.OTHER_REGION_NOT_INCLUDED
 
         val resultsOther1 = allEvents.calculateSeason(
             seasonId = seasonOtherRegion1.id!!,
@@ -618,7 +641,7 @@ class ScoreCalculationTest {
         }
         resultsOther1.find { it.personName == "Donald Duck" } shouldBe null
         val oleOther1 = resultsOther1.find { it.personName == "Ole" }!!
-        oleOther1.shouldHave(name = "Ole", seasonRank = 2, seasonPoints = 14, mangekjemperStatus = false)
+        oleOther1.shouldHave(name = "Ole", seasonRank = 2, seasonPoints = 50, mangekjemperStatus = false)
         oleOther1.shouldHaveMangekjemperRanks(listOf(0.k, 0.t), eventsOtherRegion1)
         val doleOther1 = resultsOther1.find { it.personName == "Dole" }!!
         doleOther1.shouldHave(name = "Dole", seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
@@ -634,7 +657,7 @@ class ScoreCalculationTest {
         }
         resultsOther2.find { it.personName == "Donald Duck" } shouldBe null
         val oleOther2 = resultsOther2.find { it.personName == "Ole" }!!
-        oleOther2.shouldHave(name = "Ole", seasonRank = 3, seasonPoints = 13, mangekjemperStatus = false)
+        oleOther2.shouldHave(name = "Ole", seasonRank = 3, seasonPoints = 49, mangekjemperStatus = false)
         oleOther2.shouldHaveMangekjemperRanks(listOf(0.t, 0.b, 0.b), eventsOtherRegion2)
         val doleOther2 = resultsOther2.find { it.personName == "Dole" }!!
         doleOther2.shouldHave(name = "Dole", seasonRank = 2, seasonPoints = 7, mangekjemperStatus = true)
