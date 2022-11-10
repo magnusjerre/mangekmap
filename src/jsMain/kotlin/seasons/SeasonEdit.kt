@@ -42,6 +42,7 @@ val SeasonEdit = FC<Props> {
     var mangekjemperRequiredEvents by useState("$MANGEKJEMPER_REQUIRED_EVENTS")
     var fetching by useState(false)
     val navigate = useNavigate()
+    var buttonsDisabled by useState(false)
 
     useEffectOnce {
         mainScope.launch {
@@ -164,9 +165,11 @@ val SeasonEdit = FC<Props> {
             }
 
             Button {
+                disabled = buttonsDisabled
                 variant = ButtonVariant.contained
                 onClick = {
                     mainScope.launch {
+                        buttonsDisabled = true
                         val seasonRequestDto =
                             SeasonPostDto(seasonName, seasonYear.toInt(), mangekjemperRequiredEvents.toShort(), seasonRegion)
                         val seasonResponseDto = if (seasonId == null) postSeason(seasonRequestDto) else putSeason(
@@ -177,6 +180,7 @@ val SeasonEdit = FC<Props> {
                         seasonYear = seasonResponseDto.startYear.toString()
                         mangekjemperRequiredEvents = seasonResponseDto.mangekjemperRequiredEvents.toString()
                         seasonRegion = seasonResponseDto.region
+                        navigate("/")
                     }
                 }
                 +"Lagre"
@@ -186,8 +190,9 @@ val SeasonEdit = FC<Props> {
                     marginLeft = 1.em
                 }
                 variant = ButtonVariant.outlined
+                disabled = buttonsDisabled
                 onClick = {
-                    navigate.invoke("/")
+                    navigate("/")
                 }
                 +"Avbryt"
             }
