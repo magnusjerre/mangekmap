@@ -7,9 +7,11 @@ import com.experis.mangekamp.logic.SeasonSimplifiedEvent
 import com.experis.mangekamp.logic.calculateSeason
 import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Gender
+import com.experis.mangekamp.models.Region
 import com.experis.mangekamp.models.Season
 import dto.EventPointsReasonDto
 import dto.EventResultDto
+import dto.RegionDto
 import dto.SeasonDto
 import dto.SeasonParticipantDto
 import dto.SeasonPenaltyPointsDto
@@ -71,4 +73,11 @@ fun SeasonPostDto.toModel(): Season = Season(
     name = name,
     startYear = startYear,
     mangekjemperRequiredEvents = mangekjemperRequiredEvents,
+    region = region.toModel()
 )
+
+fun RegionDto.toModel(): Region = when (this) {
+    RegionDto.TRONDHEIM -> Region.TRONDHEIM
+    RegionDto.BERGEN -> Region.BERGEN
+    RegionDto.OSLO -> Region.OSLO
+}

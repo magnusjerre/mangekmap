@@ -71,7 +71,7 @@ class Season(
     var name: String,
     var startYear: Int,
     var mangekjemperRequiredEvents: Short,
-//    var region: Region,
+    var region: Region,
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     var id: Long? = null

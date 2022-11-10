@@ -7,6 +7,7 @@ import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Participant
 import com.experis.mangekamp.models.ParticipantId
 import com.experis.mangekamp.models.Person
+import com.experis.mangekamp.models.Region
 import com.experis.mangekamp.models.Season
 import com.experis.mangekamp.repositories.CategoryRepository
 import com.experis.mangekamp.repositories.EventRepository
@@ -49,13 +50,19 @@ class CsvImportController(
 
         val seasonName = lines.mapSeasonName()
         val seasonStartYear = seasonName.getSeasonStartYear()
-
+        val region = if (seasonName.contains("Trondheim", ignoreCase = true))
+            Region.TRONDHEIM
+        else if (seasonName.contains("Bergen", ignoreCase = true))
+            Region.BERGEN
+        else
+            Region.OSLO
         val season = seasonRepository.findByName(seasonName) ?: seasonRepository.saveAndFlush(
             Season(
                 events = mutableListOf(),
                 name = seasonName,
                 startYear = seasonStartYear,
-                mangekjemperRequiredEvents = MANGEKJEMPER_REQUIRED_EVENTS
+                mangekjemperRequiredEvents = MANGEKJEMPER_REQUIRED_EVENTS,
+                region = region
             )
         )
 
