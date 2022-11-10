@@ -9,6 +9,7 @@ data class SeasonDto(
     var name: String,
     var startYear: Int,
     var mangekjemperRequiredEvents: Short,
+    var region: RegionDto,
     var id: Long? = null
 )
 

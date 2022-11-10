@@ -7,6 +7,7 @@ import csstype.FontWeight
 import csstype.em
 import dto.CategoryDto
 import dto.GenderDto
+import dto.RegionDto
 import dto.SeasonDto
 import dto.SeasonParticipantDto
 import emotion.react.css
@@ -28,7 +29,7 @@ import react.useState
 
 val Season = FC<Props> {
     val seasonId = useParams()["id"]!!.toLong()
-    var season by useState(SeasonDto(emptyList(), emptyList() , "Unknown", 0, 8))
+    var season by useState(SeasonDto(emptyList(), emptyList() , "Unknown", 0, 8, RegionDto.OSLO))
     var categories by useState(emptyList<CategoryDto>())
     var male by useState<List<SeasonParticipantDto>>(emptyList())
     var female by useState<List<SeasonParticipantDto>>(emptyList())

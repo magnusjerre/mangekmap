@@ -36,6 +36,11 @@ fun Season.toDto(allEvents: List<Event>): SeasonDto {
         name = name,
         startYear = startYear,
         mangekjemperRequiredEvents = mangekjemperRequiredEvents,
+        region = when (this.region) {
+            Region.BERGEN -> RegionDto.BERGEN
+            Region.OSLO -> RegionDto.OSLO
+            Region.TRONDHEIM -> RegionDto.TRONDHEIM
+        },
         id = id
     )
 }

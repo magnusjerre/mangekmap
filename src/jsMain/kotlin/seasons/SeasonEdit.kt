@@ -16,7 +16,11 @@ import mainScope
 import mui.material.Button
 import mui.material.ButtonVariant
 import mui.material.CircularProgress
+import mui.material.FormControl
 import mui.material.InputBaseProps
+import mui.material.InputLabel
+import mui.material.MenuItem
+import mui.material.Select
 import mui.material.TextField
 import mui.system.Box
 import mui.system.sx
@@ -24,6 +28,7 @@ import react.FC
 import react.Props
 import react.ReactNode
 import react.dom.html.ReactHTML.h1
+import react.key
 import react.router.useNavigate
 import react.router.useParams
 import react.useEffectOnce
@@ -33,6 +38,7 @@ val SeasonEdit = FC<Props> {
     val seasonId = useParams()["id"]?.toLongOrNull()
     var seasonName by useState("")
     var seasonYear by useState("")
+    var seasonRegion by useState(RegionDto.OSLO)
     var mangekjemperRequiredEvents by useState("$MANGEKJEMPER_REQUIRED_EVENTS")
     var fetching by useState(false)
     val navigate = useNavigate()
@@ -47,6 +53,7 @@ val SeasonEdit = FC<Props> {
             seasonName = season.name
             seasonYear = season.startYear.toString()
             mangekjemperRequiredEvents = season.mangekjemperRequiredEvents.toString()
+            seasonRegion = season.region
             fetching = false
         }
     }
@@ -105,6 +112,33 @@ val SeasonEdit = FC<Props> {
             }
         }
 
+        FormControl {
+            sx {
+                marginTop = 1.em
+            }
+            InputLabel {
+                id = "region-label"
+                +"Region"
+            }
+            Select {
+                labelId = "region-label"
+                id = "region"
+                value = seasonRegion.name
+                label = ReactNode("Region")
+                onChange = { ev, _ ->
+                    seasonRegion = RegionDto.valueOf(ev.target.value)
+                }
+
+                for (region in RegionDto.values()) {
+                    MenuItem {
+                        key = "${region.ordinal}"
+                        value = region.name
+                        +(region.name.substring(0, 1) + region.name.lowercase().substring(1))
+                    }
+                }
+            }
+        }
+
         TextField {
             id = "mangekjemper-required-events"
             label = ReactNode("Øvelser for å bli mangekjemper")
@@ -134,7 +168,7 @@ val SeasonEdit = FC<Props> {
                 onClick = {
                     mainScope.launch {
                         val seasonRequestDto =
-                            SeasonPostDto(seasonName, seasonYear.toInt(), mangekjemperRequiredEvents.toShort(), RegionDto.OSLO)
+                            SeasonPostDto(seasonName, seasonYear.toInt(), mangekjemperRequiredEvents.toShort(), seasonRegion)
                         val seasonResponseDto = if (seasonId == null) postSeason(seasonRequestDto) else putSeason(
                             seasonId,
                             seasonRequestDto
@@ -142,6 +176,7 @@ val SeasonEdit = FC<Props> {
                         seasonName = seasonResponseDto.name
                         seasonYear = seasonResponseDto.startYear.toString()
                         mangekjemperRequiredEvents = seasonResponseDto.mangekjemperRequiredEvents.toString()
+                        seasonRegion = seasonResponseDto.region
                     }
                 }
                 +"Lagre"
