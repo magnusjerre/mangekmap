@@ -51,6 +51,7 @@ val Seasons = FC<Props> {
                 TableRow {
                     TableCell { +"Navn" }
                     TableCell { +"Start år" }
+                    TableCell { +"Region" }
                     if (isAuthenticated) {
                         TableCell { +"Rediger" }
                     }
@@ -72,6 +73,7 @@ val Seasons = FC<Props> {
                             }
                         }
                         TableCell { +"${season.startYear}" }
+                        TableCell { +(season.region.name.substring(0, 1) + season.region.name.lowercase().substring(1))}
                         if (isAuthenticated) {
                             TableCell {
                                 Link {
