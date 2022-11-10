@@ -1,24 +1,17 @@
 import authentication.getIsAuthenticated
-import csstype.Display
 import csstype.FontStyle
-import csstype.ListStyleType
 import csstype.em
 import emotion.react.css
 import kotlinx.coroutines.launch
-import kotlinx.js.jso
-import mui.material.ListItem
 import mui.material.Stack
 import mui.material.StackDirection
 import mui.material.Typography
 import mui.material.styles.TypographyVariant
 import mui.system.responsive
 import mui.system.sx
-import react.ElementType
 import react.FC
 import react.Props
-import react.ReactNode
 import react.dom.html.ReactHTML.a
-import react.dom.html.ReactHTML.h2
 import react.dom.html.ReactHTML.li
 import react.dom.html.ReactHTML.ol
 import react.dom.html.ReactHTML.span
@@ -78,6 +71,10 @@ val Welcome = FC<WelcomeProps> { props ->
             Link {
                 to = "/persons"
                 +"Deltakere"
+            }
+            Link {
+                to = "/seasons/new"
+                +"Ny sesong"
             }
         } else {
             Link {
