@@ -1,11 +1,10 @@
 plugins {
     kotlin("multiplatform") version "1.7.10"
-    id("org.flywaydb.flyway") version "9.3.0"
     id("org.springframework.boot") version "2.7.3"
     id("io.spring.dependency-management") version "1.0.13.RELEASE"
-    kotlin("plugin.spring") version "1.6.21"
+    kotlin("plugin.spring") version "1.7.10"
     kotlin("plugin.serialization") version "1.7.10"
-    kotlin("plugin.jpa") version "1.6.21"
+    kotlin("plugin.jpa") version "1.7.10"
     application
 }
 
@@ -26,18 +25,6 @@ kotlin {
         withJava()
         testRuns["test"].executionTask.configure {
             useJUnitPlatform()
-        }
-        flyway {
-            val dbUrl: String by project.extra.properties
-            val dbUser: String by project.extra.properties
-            val dbPassword: String by project.extra.properties
-
-            url = dbUrl
-            user = dbUser
-            password = dbPassword
-            driver = "org.postgresql.Driver"
-            schemas = arrayOf("public")
-            locations = arrayOf("filesystem:src/main/resources/db/migration", "classpath:db/migration")
         }
     }
     js(LEGACY) {
