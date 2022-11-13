@@ -1,6 +1,7 @@
 package seasons
 
 import components.HeaderTableCell
+import components.PersonEventsNameLink
 import components.TableBox
 import csstype.Color
 import csstype.Display
@@ -178,7 +179,12 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
                                     rank = participant.seasonRank
                                 }
                             }
-                            TableCell { +participant.name }
+                            TableCell {
+                                PersonEventsNameLink {
+                                    id = participant.personId
+                                    name = participant.name
+                                }
+                            }
                             CenteredTableCell {
                                 val otherSeasonsEvents =
                                     participant.results.filter { it.seasonId != props.seasonId }.size
@@ -212,7 +218,7 @@ val SeasonResultTable = FC<SeasonResultTableProps> { props ->
                             for (event in props.events) {
                                 CenteredTableCell {
                                     val participantEvent =
-                                        participant.results.find { it.eventId == event.id };
+                                        participant.results.find { it.eventId == event.id }
                                     val result = participantEvent?.prettyResult() ?: ""
                                     if (participantEvent?.isAttendanceOnly == true) {
                                         Tooltip {

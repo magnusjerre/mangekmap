@@ -70,7 +70,9 @@ class SeasonPostDto(
 
 @Serializable
 enum class RegionDto {
-    OSLO, TRONDHEIM, BERGEN
+    OSLO, TRONDHEIM, BERGEN;
+
+    fun prettyName(): String = name.substring(0, 1) + name.substring(1).lowercase()
 }
 
 @Serializable

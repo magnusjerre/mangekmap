@@ -3,6 +3,7 @@ package events
 import dto.EventDto
 import dto.EventPostDto
 import dto.ParticipantPostDto
+import dto.PersonEventsDto
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.decodeFromString
@@ -59,4 +60,13 @@ suspend fun deleteEvent(id: Long) {
     if (!response.ok) {
         throw Exception("oh no")
     }
+}
+
+suspend fun getParticipations(personId: Long): PersonEventsDto {
+    val response = window.fetch("$eventsApiBasePath/participations/$personId").await()
+
+    if (!response.ok)
+        throw Exception("oh no")
+
+    return Json.decodeFromString(response.text().await())
 }

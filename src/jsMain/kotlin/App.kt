@@ -6,6 +6,7 @@ import events.EventOverview
 import login.ChangePassword
 import login.Login
 import mui.material.Typography
+import person_events.PersonEvents
 import persons.PersonEdit
 import react.FC
 import react.Props
@@ -13,7 +14,6 @@ import react.createElement
 import react.router.Route
 import react.router.Routes
 import react.router.dom.HashRouter
-import react.router.dom.Link
 import seasons.Season
 import seasons.SeasonEdit
 import seasons.Seasons
@@ -30,6 +30,10 @@ val App = FC<Props> {
                 Route {
                     path = "/persons/:id"
                     element = createElement(PersonEdit)
+                }
+                Route {
+                    path = "/persons/:personId/participations"
+                    element = createElement(PersonEvents)
                 }
                 Route {
                     path = "/persons"

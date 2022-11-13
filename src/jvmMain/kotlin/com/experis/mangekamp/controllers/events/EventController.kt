@@ -11,8 +11,7 @@ import dto.EventDto
 import dto.EventPostDto
 import dto.ParticipantDto
 import dto.ParticipantPostDto
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import dto.PersonEventsDto
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -24,6 +23,8 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @RestController
 @RequestMapping("api/events")
@@ -157,4 +158,13 @@ class EventController(
 
         return participants.map { it.toDto() }
     }
+
+    @GetMapping("participations/{personId}")
+    fun getAllPersonEvents(@PathVariable personId: Long): PersonEventsDto = participantRepository.findAllByIdPersonId(personId).takeIf { it.isNotEmpty() }?.let {
+        PersonEventsDto(
+            personId = it.first().id.person.id!!,
+            personName = it.first().id.person.name,
+            events = it.map(Participant::toParticipantSimpleDto)
+        )
+    } ?: throw ResourceNotFoundException("No events for person found")
 }

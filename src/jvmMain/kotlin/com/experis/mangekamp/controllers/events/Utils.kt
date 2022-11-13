@@ -8,6 +8,8 @@ import com.experis.mangekamp.models.Participant
 import dto.EventDto
 import dto.EventPostDto
 import dto.ParticipantDto
+import dto.ParticipantSimpleDto
+import dto.RegionDto
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -39,4 +41,17 @@ fun EventPostDto.toModel(categoryIdMapper: (Long) -> Category): Event = Event(
     venue = venue,
     isTeamBased = isTeamBased,
     participants = emptyList()
+)
+
+fun Participant.toParticipantSimpleDto(): ParticipantSimpleDto = ParticipantSimpleDto(
+    eventId = id.event.id!!,
+    eventTitle = id.event.title,
+    eventDate = id.event.date.format(DateTimeFormatter.ISO_DATE),
+    categoryDto = id.event.category.toDto(),
+    rank = rank,
+    isAttendanceOnly = isAttendanceOnly,
+    score = score,
+    seasonId = id.event.season.id!!,
+    seasonName = id.event.season.name,
+    region = RegionDto.valueOf(id.event.season.region.name)
 )

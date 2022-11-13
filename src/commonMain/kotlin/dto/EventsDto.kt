@@ -29,6 +29,27 @@ data class ParticipantDto(
     override fun compareTo(other: ParticipantDto): Int = rank.compareTo(other.rank)
 }
 
+
+@Serializable
+data class PersonEventsDto(
+    val personId: Long,
+    val personName: String,
+    val events: List<ParticipantSimpleDto>
+)
+
+@Serializable
+data class ParticipantSimpleDto(
+    val eventId: Long,
+    val eventTitle: String,
+    val eventDate: String,
+    val categoryDto: CategoryDto,
+    val rank: Int,
+    val isAttendanceOnly: Boolean,
+    val score: String,
+    val seasonId: Long,
+    val seasonName: String,
+    val region: RegionDto)
+
 @Serializable
 data class EventPostDto(
     val date: String,

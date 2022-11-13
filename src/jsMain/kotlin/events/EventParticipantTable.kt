@@ -1,10 +1,9 @@
 package events
 
 import components.HeaderTableCell
+import components.PersonEventsNameLink
 import csstype.px
 import dto.ParticipantDto
-import mui.material.BaseSize
-import mui.material.Paper
 import mui.material.Size
 import mui.material.Table
 import mui.material.TableBody
@@ -49,7 +48,12 @@ val EventParticipantTable = FC<EventParticipantTableProps> { props ->
                 for (participant in participants) {
                     TableRow {
                         key = "${participant.personId}"
-                        TableCell { +participant.name }
+                        TableCell {
+                            PersonEventsNameLink {
+                                id = participant.personId
+                                name = participant.name
+                            }
+                        }
                         if (isTeamBased) {
                             TableCell { +"${participant.teamNumber}" }
                         }
