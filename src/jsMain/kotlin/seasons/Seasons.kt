@@ -35,6 +35,8 @@ val Seasons = FC<Props> {
             fetching = true
             isAuthenticated = getIsAuthenticated()
             seasons = getSeasons(excludeEvents = true)
+                .sortedBy {it.name }
+                .sortedByDescending { it.startYear}
             fetching = false
         }
     }
