@@ -104,13 +104,21 @@ private val SeasonPoints = FC<SeasonPointsProps> { props ->
 private val MangekjemperStatus = FC<SeasonPointsProps> { props ->
     Tooltip {
         if (!props.seasonParticipant.isMangekjemper) {
-            val numberOfMissingEvents = (props.mangekjemperRequiredEvents ?: 8) - props.seasonParticipant.results.size
+            val numberOfMissingEvents = ((props.mangekjemperRequiredEvents ?: 8) - props.seasonParticipant.results.size).coerceAtLeast(0)
             val categoriesParticipatedIn = props.seasonParticipant.results.distinctBy { it.eventCategoryName }.map { it.eventCategoryName }
             val missingCategories = props.categories.map { it.name } - categoriesParticipatedIn
-            console.log("missingCategories", missingCategories)
-            val categoryText = if (missingCategories.isEmpty()) "" else ", trenger minst 1 øvelse i ${missingCategories.joinToString(" og ") { it }}"
             val postfix = if (numberOfMissingEvents == 1) "øvelse" else "øvelser"
-            title = ReactNode("Mangler $numberOfMissingEvents $postfix$categoryText")
+
+            title = if (missingCategories.isEmpty()) {
+                ReactNode("Mangler $numberOfMissingEvents $postfix uavhengig av kategori")
+            } else {
+                if (numberOfMissingEvents == 0) {
+                    // Har nok øvelser for å bli mangekjemper, men har ikke øvelser i alle påkrevde kategorier
+                    ReactNode("Trenger minst 1 øvelse i ${missingCategories.joinToString(" og ") { it }}")
+                } else {
+                    ReactNode("Mangler $numberOfMissingEvents $postfix, hvorav minst 1 øvelse i ${missingCategories.joinToString(" og ") { it }}")
+                }
+            }
         }
         span {
             if (props.seasonParticipant.isMangekjemper)
