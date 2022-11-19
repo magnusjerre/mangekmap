@@ -6,6 +6,7 @@ import com.experis.mangekamp.models.Gender
 import com.experis.mangekamp.models.Participant
 import com.experis.mangekamp.models.ParticipantId
 import com.experis.mangekamp.models.Person
+import com.experis.mangekamp.models.Region
 import com.experis.mangekamp.models.Season
 import io.kotest.inspectors.shouldForAll
 import io.kotest.matchers.collections.shouldContain
@@ -252,6 +253,31 @@ class ScoreCalculationTest {
         )
         participant3Event.seasonPenaltyPoints shouldBe SeasonPenaltyPoints(pointsPerMissingEvent = 8, numberOfMissingEvents = 5)
         participant3Event.seasonPoints shouldBe 47
+    }
+
+    @Test
+    fun `Non-mangekjemper with more events than required to become mangekjemper should prefer events from different categories, and exclude points for "extra" events`() {
+        val participant = listOf(
+            teknikk to 1,
+            teknikk to 2,
+            teknikk to 3,
+            teknikk to 4,
+            teknikk to 5,
+            teknikk to 6,
+            teknikk to 7,
+            teknikk to 8,
+            teknikk to 9,
+            ball to 10
+        ).toSeasonParticipant(isMangekjemper = false)
+
+        participant.calculateSeasonPoints(1, penaltyPoints, mangekjemperRequirement = simpleMangekjemperRequirement)
+
+        val excludedEvents = participant.events.filter { it.eventPointsReason == PointsReason.NOT_INCLUDED }
+        excludedEvents.count() shouldBe 2
+        excludedEvents.map { it.actualRank }.toSet() shouldBe setOf(8, 9)
+
+        val includedEvents = participant.events.filterNot { it.eventPointsReason == PointsReason.NOT_INCLUDED }
+        includedEvents.count() shouldBe 8
     }
 
     @Test
@@ -510,13 +536,17 @@ class ScoreCalculationTest {
         events.registerResults(listOf(3.b, 3.k, 3.b, 2.t, 0.t), "Onkel Skrue", 1030, persons)
         events.registerResults(listOf(4.b, 4.k, 4.b, 3.t, 2.t), "Dole", 1040, persons)
         events.registerResults(listOf(5.b, 5.k, 5.b, 4.t, 0.t), "Doffen", 1050, persons)
-        val season = Season(events.toMutableList(), "season", 2022, 4, 1)
+        val season = Season(events.toMutableList(), "season", 2022, 4, Region.OSLO, 1)
         events.forEach { it.season = season }
         // Make Dole and Doffen attendants only. This way his last event-score should be replaced by 4 which is the number of mangekjempere
         events.last().participants.find { it.id.person.name == "Dole" }!!.isAttendanceOnly = true
         events[3].participants.find { it.id.person.name == "Doffen" }!!.isAttendanceOnly = true
 
-        val result = events.calculateSeason(seasonId = season.id!!, gender = Gender.MALE, expectedMangekjemperEvents = season.mangekjemperRequiredEvents.toInt()) { it.events.isMangekjemper(season.mangekjemperRequiredEvents.toInt()) }
+        val result = events.calculateSeason(
+            seasonId = season.id!!,
+            gender = Gender.MALE,
+            expectedMangekjemperEvents = season.mangekjemperRequiredEvents.toInt()
+        ) { it.events.isMangekjemper(season.mangekjemperRequiredEvents.toInt()) }
         val winner = result[0]
         winner.shouldHave(name = "Donald Duck", seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
         winner.shouldHaveMangekjemperRanks(listOf(1.b, 1.k, 1.b, 1.t, 1.t), events)
@@ -544,7 +574,7 @@ class ScoreCalculationTest {
         events.registerResults(listOf(5.b, 0.k, 4.b, 4.t, 5.k, 4.t, 4.t, 3.b, 4.b), "Dole", 1040, persons)
         events.registerResults(listOf(3.b, 4.k, 3.b, 1.t, 4.k, 3.t, 3.t, 1.b, 2.b), "Doffen", 1050, persons)
 
-        val season = Season(events.toMutableList(), "season", 2022, 8, 1)
+        val season = Season(events.toMutableList(), "season", 2022, 8, Region.OSLO, 1)
         events.forEach {
             it.season = season
         }
@@ -576,20 +606,20 @@ class ScoreCalculationTest {
         eventsMainRegion.registerResults(listOf(0.b, 1.k, 0.b, 0.t), "Dole", 1040, personsMainRegion)
         eventsMainRegion.registerResults(listOf(0.b, 3.k, 2.b, 0.t), "Doffen", 1050, personsMainRegion)
 
-        val seasonMainRegion = Season(eventsMainRegion.toMutableList(), "season", 2022, 4, 1)
+        val seasonMainRegion = Season(eventsMainRegion.toMutableList(), "season", 2022, 4, Region.OSLO, 1)
         eventsMainRegion.forEach { it.season = seasonMainRegion }
 
         val eventsOtherRegion1 = seasonEvents.subList(4, 6).toEvents()
         eventsOtherRegion1.registerResults(listOf(2.k, 0.t), "Ole", 1020, personsMainRegion)
         eventsOtherRegion1.registerResults(listOf(1.k, 1.t), "Dole", 1040, personsMainRegion)
-        val seasonOtherRegion1 = Season(eventsOtherRegion1.toMutableList(), "season other 1", 2022, 4, 2)
+        val seasonOtherRegion1 = Season(eventsOtherRegion1.toMutableList(), "season other 1", 2022, 4, Region.TRONDHEIM, 2)
         eventsOtherRegion1.forEach { it.season = seasonOtherRegion1 }
 
         val eventsOtherRegion2 = seasonEvents.subList(6, 9).toEvents()
         eventsOtherRegion2.registerResults(listOf(1.t, 0.b, 0.b), "Ole", 1020, personsMainRegion)
         eventsOtherRegion2.registerResults(listOf(0.t, 1.b, 0.b), "Dole", 1040, personsMainRegion)
         eventsOtherRegion2.registerResults(listOf(2.t, 2.b, 1.b), "Doffen", 1050, personsMainRegion)
-        val seasonOtherRegion2 = Season(eventsOtherRegion2.toMutableList(), "season other 2", 2022, 4, 3)
+        val seasonOtherRegion2 = Season(eventsOtherRegion2.toMutableList(), "season other 2", 2022, 4, Region.BERGEN, 3)
         eventsOtherRegion2.forEach { it.season = seasonOtherRegion2 }
 
         val allEvents = eventsMainRegion + eventsOtherRegion1 + eventsOtherRegion2

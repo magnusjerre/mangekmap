@@ -5,6 +5,7 @@ import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Gender
 import java.lang.Integer.max
 import java.lang.Integer.min
+import kotlin.math.exp
 
 fun List<Event>.calculateSeason(
     seasonId: Long,
@@ -185,14 +186,46 @@ fun SeasonParticipant.calculateSeasonPoints(
         }
         val rankingsSortedNew = events.sortedBy { it.eventPoints }
 
-        val output = rankingsSortedNew.subList(0, min(expectedMangekjemperEvents, rankingsSortedNew.count())).map { it.category to it }
+//        val output = rankingsSortedNew.subList(0, min(expectedMangekjemperEvents, rankingsSortedNew.count())).map { it.category to it }
+        val output = rankingsSortedNew.map { it.category to it }
+        val techniqueEvents = output.filter { it.first.name == "Teknikk" }.toMutableList()
+        val ballEvents = output.filter { it.first.name == "Balløvelser" }.toMutableList()
+        val physicalConditionEvents = output.filter { it.first.name == "Kondisjon" }.toMutableList()
 
-        if (output.count() < expectedMangekjemperEvents) {
-            this.seasonPenaltyPoints = SeasonPenaltyPoints(expectedMangekjemperEvents, expectedMangekjemperEvents - output.count())
+        val actualOutput = mutableListOf<Pair<Category, SeasonSimplifiedEvent>>()
+
+        if (techniqueEvents.isNotEmpty())
+            actualOutput.add(techniqueEvents.removeFirst())
+        if (ballEvents.isNotEmpty())
+            actualOutput.add(ballEvents.removeFirst())
+        if (physicalConditionEvents.isNotEmpty())
+            actualOutput.add(physicalConditionEvents.removeFirst())
+
+        while (actualOutput.count() < expectedMangekjemperEvents && (physicalConditionEvents.isNotEmpty() || techniqueEvents.isNotEmpty() || ballEvents.isNotEmpty())) {
+            val p = physicalConditionEvents.firstOrNull()?.second?.eventPoints ?: Int.MAX_VALUE
+            val b = ballEvents.firstOrNull()?.second?.eventPoints ?: Int.MAX_VALUE
+            val t = techniqueEvents.firstOrNull()?.second?.eventPoints ?: Int.MAX_VALUE
+
+            if (p < b && p < t) {
+                actualOutput.add(physicalConditionEvents.removeFirst())
+            } else if (b < t) {
+                actualOutput.add(ballEvents.removeFirst())
+            } else {
+                actualOutput.add(techniqueEvents.removeFirst())
+            }
         }
 
-        seasonPoints = output.sumOf { it.second.eventPoints } + (seasonPenaltyPoints?.penaltyPoints ?: 0)
-        return output
+        if (actualOutput.count() < expectedMangekjemperEvents) {
+            this.seasonPenaltyPoints = SeasonPenaltyPoints(expectedMangekjemperEvents, expectedMangekjemperEvents - actualOutput.count())
+        }
+
+        (physicalConditionEvents + techniqueEvents + ballEvents).forEach {
+            it.second.eventPoints = 0
+            it.second.eventPointsReason = PointsReason.NOT_INCLUDED
+        }
+
+        seasonPoints = actualOutput.sumOf { it.second.eventPoints } + (seasonPenaltyPoints?.penaltyPoints ?: 0)
+        return actualOutput
     }
 }
 
