@@ -36,7 +36,7 @@ class SeasonsController(
     private val logger = LoggerFactory.getLogger(SeasonsController::class.java)
 
     @GetMapping
-    fun getSeasons(): List<SeasonDto> = seasonRepository.findAll().map { it.toDto(it.events) }
+    fun getSeasons(): List<SeasonDto> = seasonRepository.findAll().map { it.toDtoSimple() }
 
     @GetMapping("{id}")
     fun getSeason(@PathVariable id: Long, @RequestParam excludeEvents: Boolean = false): SeasonDto {

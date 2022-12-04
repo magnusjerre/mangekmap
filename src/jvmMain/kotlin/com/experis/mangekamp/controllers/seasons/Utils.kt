@@ -45,6 +45,22 @@ fun Season.toDto(allEvents: List<Event>): SeasonDto {
     )
 }
 
+fun Season.toDtoSimple(): SeasonDto {
+    return SeasonDto(
+        events = emptyList(),
+        participants = emptyList(),
+        name = name,
+        startYear = startYear,
+        mangekjemperRequiredEvents = mangekjemperRequiredEvents,
+        region = when (this.region) {
+            Region.BERGEN -> RegionDto.BERGEN
+            Region.OSLO -> RegionDto.OSLO
+            Region.TRONDHEIM -> RegionDto.TRONDHEIM
+        },
+        id = id
+    )
+}
+
 fun Event.toDtoSimple(): SimpleEventDto = SimpleEventDto(
     id = id!!,
     name = title,
