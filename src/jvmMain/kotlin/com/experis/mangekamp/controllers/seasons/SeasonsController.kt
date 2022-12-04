@@ -3,6 +3,7 @@ package com.experis.mangekamp.controllers.seasons
 import com.experis.mangekamp.controllers.events.toDto
 import com.experis.mangekamp.controllers.events.toModel
 import com.experis.mangekamp.exceptions.ResourceNotFoundException
+import com.experis.mangekamp.logPerformance
 import com.experis.mangekamp.repositories.CategoryRepository
 import com.experis.mangekamp.repositories.EventRepository
 import com.experis.mangekamp.repositories.ParticipantRepository
@@ -11,6 +12,7 @@ import dto.EventDto
 import dto.EventPostDto
 import dto.SeasonDto
 import dto.SeasonPostDto
+import org.slf4j.LoggerFactory
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
+import kotlin.math.log
 
 @RestController
 @RequestMapping("api/seasons")
@@ -31,17 +34,26 @@ class SeasonsController(
     private val participantRepository: ParticipantRepository
 ) {
 
+    private val logger = LoggerFactory.getLogger(SeasonsController::class.java)
+
     @GetMapping
     fun getSeasons(): List<SeasonDto> = seasonRepository.findAll().map { it.toDto(it.events) }
 
     @GetMapping("{id}")
     fun getSeason(@PathVariable id: Long, @RequestParam excludeEvents: Boolean = false): SeasonDto {
+        val startTime = System.currentTimeMillis()
         val season = seasonRepository.findById(id).orElseThrow { ResourceNotFoundException("Season with id $id not found") }
         val uniqueParticipantsForSeason = season.events.flatMap { it.participants }.map { it.id.person.id!! }.distinct()
+        val time = logger.logPerformance(startTime, "getSeasons() - fetch season and fond ${uniqueParticipantsForSeason.count()} unique participants")
         val allParticipants = uniqueParticipantsForSeason.map { participantRepository.findAllByIdPersonIdAndIdEventSeasonStartYear(it, season.startYear) }.flatten()
+        val time2 = logger.logPerformance(time, "getSeasons() - fetching all participants for ${uniqueParticipantsForSeason.count()} unique participants")
         val allEvents = allParticipants.map { it.id.event }.distinctBy { it.id }
         allEvents.forEach { it.participants = it.participants.filter { p -> uniqueParticipantsForSeason.contains(p.id.person.id!!) } }
-        return season.toDto(allEvents)
+        val time3 = logger.logPerformance(time2, "getSeasons() - allEventsFilter")
+        val output = season.toDto(allEvents)
+        logger.logPerformance(time3, "getSeasons() - dto mapping and season calculation")
+        logger.logPerformance(startTime, "getSeasons() - total processing time")
+        return output
     }
 
     @PostMapping

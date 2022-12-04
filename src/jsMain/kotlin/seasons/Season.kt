@@ -13,6 +13,7 @@ import dto.SeasonParticipantDto
 import emotion.react.css
 import kotlinx.coroutines.launch
 import mainScope
+import mui.material.CircularProgress
 import mui.system.Box
 import mui.system.Stack
 import mui.system.StackDirection
@@ -33,11 +34,13 @@ val Season = FC<Props> {
     var categories by useState(emptyList<CategoryDto>())
     var male by useState<List<SeasonParticipantDto>>(emptyList())
     var female by useState<List<SeasonParticipantDto>>(emptyList())
+    var fetching by useState(false)
     var isAuthenticated by useState(false)
 
     useEffectOnce {
         mainScope.launch {
             try {
+                fetching = true
                 isAuthenticated = getIsAuthenticated()
                 categories = getCategories()
 
@@ -45,6 +48,7 @@ val Season = FC<Props> {
                 season = season1
                 male = season1.participants.filter { it.gender == GenderDto.MALE }
                 female = season1.participants.filter { it.gender == GenderDto.FEMALE }
+                fetching = false
             } catch (e: Exception) {
                 console.log(e)
             }
@@ -94,6 +98,11 @@ val Season = FC<Props> {
                     +"Legg til ny øvelse"
                 }
             }
+        }
+
+        if (fetching) {
+            CircularProgress {}
+            return@Box
         }
 
         SeasonResultTable {
