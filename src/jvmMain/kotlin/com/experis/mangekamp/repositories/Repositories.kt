@@ -29,6 +29,7 @@ interface ParticipantRepository : JpaRepository<Participant, Long> {
 
     fun findAllByIdPersonId(personId: Long): List<Participant>
     fun findAllByIdPersonIdAndIdEventSeasonStartYear(personId: Long, startYear: Int): List<Participant>
+    fun findAllByIdPersonIdInAndIdEventSeasonStartYearAndIdEventSeasonIdIsNot(personIds: List<Long>, startYear: Int, seasonId: Long): List<Participant>
     fun findAllByIdPersonIdAndIdEventSeasonIdIsNot(personId: Long, seasonId: Long): List<Participant>
 }
 

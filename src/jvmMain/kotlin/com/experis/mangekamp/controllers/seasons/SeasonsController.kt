@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
-import kotlin.math.log
 
 @RestController
 @RequestMapping("api/seasons")
@@ -42,13 +41,26 @@ class SeasonsController(
     @GetMapping("{id}")
     fun getSeason(@PathVariable id: Long, @RequestParam excludeEvents: Boolean = false): SeasonDto {
         val startTime = System.currentTimeMillis()
-        val season = seasonRepository.findById(id).orElseThrow { ResourceNotFoundException("Season with id $id not found") }
+        val season =
+            seasonRepository.findById(id).orElseThrow { ResourceNotFoundException("Season with id $id not found") }
         val uniqueParticipantsForSeason = season.events.flatMap { it.participants }.map { it.id.person.id!! }.distinct()
-        val time = logger.logPerformance(startTime, "getSeasons() - fetch season and fond ${uniqueParticipantsForSeason.count()} unique participants")
-        val allParticipants = uniqueParticipantsForSeason.map { participantRepository.findAllByIdPersonIdAndIdEventSeasonStartYear(it, season.startYear) }.flatten()
-        val time2 = logger.logPerformance(time, "getSeasons() - fetching all participants for ${uniqueParticipantsForSeason.count()} unique participants")
-        val allEvents = allParticipants.map { it.id.event }.distinctBy { it.id }
-        allEvents.forEach { it.participants = it.participants.filter { p -> uniqueParticipantsForSeason.contains(p.id.person.id!!) } }
+        val time = logger.logPerformance(
+            startTime,
+            "getSeasons() - fetch season and fond ${uniqueParticipantsForSeason.count()} unique participants"
+        )
+        val participantsAlsoInOtherRegions =
+            participantRepository.findAllByIdPersonIdInAndIdEventSeasonStartYearAndIdEventSeasonIdIsNot(
+                uniqueParticipantsForSeason,
+                season.startYear,
+                id
+            )
+        val eventsFromOtherRegions = participantsAlsoInOtherRegions.map { it.id.event }.distinctBy { it.id }
+        val time2 = logger.logPerformance(
+            time,
+            "getSeasons() - fetching all participants for ${uniqueParticipantsForSeason.count()} unique participants"
+        )
+        val allEvents =
+            season.events.flatMap { it.participants }.map { it.id.event }.distinctBy { it.id } + eventsFromOtherRegions
         val time3 = logger.logPerformance(time2, "getSeasons() - allEventsFilter")
         val output = season.toDto(allEvents)
         logger.logPerformance(time3, "getSeasons() - dto mapping and season calculation")
