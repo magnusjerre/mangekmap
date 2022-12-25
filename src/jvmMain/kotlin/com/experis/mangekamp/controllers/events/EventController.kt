@@ -1,5 +1,6 @@
 package com.experis.mangekamp.controllers.events
 
+import ApiEvents
 import com.experis.mangekamp.exceptions.ResourceNotFoundException
 import com.experis.mangekamp.models.Participant
 import com.experis.mangekamp.models.ParticipantId
@@ -20,22 +21,19 @@ import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 @RestController
-@RequestMapping("api/events")
 class EventController(
     private val eventRepository: EventRepository,
     private val categoryRepository: CategoryRepository,
     private val personRepository: PersonRepository,
     private val participantRepository: ParticipantRepository
 ) {
-
-    @GetMapping
+    @GetMapping(ApiEvents.BASE_PATH)
     fun getEvents(@RequestParam seasonId: Long?, @RequestParam includeParticipants: Boolean?): List<EventDto> =
         if (seasonId == null)
             eventRepository.findAll().map { it.toDto(includeParticipants = includeParticipants == true) }
@@ -44,18 +42,18 @@ class EventController(
                 .map { it.toDto(includeParticipants = includeParticipants == true) }
 
 
-    @GetMapping("{id}")
+    @GetMapping(ApiEvents.ID)
     fun getEvent(@PathVariable id: Long): EventDto =
         eventRepository.findByIdOrNull(id)?.toDto() ?: throw ResourceNotFoundException("Event with id $id not found")
 
-    @PostMapping
+    @PostMapping(ApiEvents.BASE_PATH)
     fun postNewEvent(@RequestBody event: EventPostDto): EventDto = eventRepository.save(event.toModel {
         categoryRepository.findByIdOrNull(event.categoryId)
             ?: throw ResourceNotFoundException("Category with id ${event.categoryId} not found")
     }
     ).toDto()
 
-    @PatchMapping("{id}")
+    @PatchMapping(ApiEvents.ID)
     fun patchEvent(@PathVariable id: Long, @RequestBody event: EventPostDto): EventDto {
         val existingEvent =
             eventRepository.findByIdOrNull(id) ?: throw ResourceNotFoundException("Event with id $id not found")
@@ -74,7 +72,7 @@ class EventController(
     }
 
     @Transactional
-    @PatchMapping("{eventId}/participants")
+    @PatchMapping(ApiEvents.ID_PARTICIPANTS)
     fun patchParticipants(@PathVariable eventId: Long, @RequestBody body: List<ParticipantPostDto>): EventDto {
         val event = eventRepository.findByIdOrNull(eventId)
             ?: throw ResourceNotFoundException("Event with id $eventId not found")
@@ -122,7 +120,7 @@ class EventController(
         return event.toDto(includeParticipants = true)
     }
 
-    @DeleteMapping("{eventId}/participants")
+    @DeleteMapping(ApiEvents.ID_PARTICIPANTS)
     @Transactional
     fun deleteParticipantsByPersonId(@PathVariable eventId: Long, @RequestBody personIds: List<Long>): EventDto {
         if (!eventRepository.existsById(eventId)) {
@@ -135,31 +133,31 @@ class EventController(
         return eventRepository.findByIdOrNull(eventId)?.toDto(includeParticipants = true)!!
     }
 
-    @DeleteMapping("{eventId}")
+    @DeleteMapping(ApiEvents.ID)
     @Transactional
-    fun deleteEvent(@PathVariable eventId: Long) {
-        val event = eventRepository.findByIdOrNull(eventId) ?: throw ResourceNotFoundException("Event with id $eventId not found")
+    fun deleteEvent(@PathVariable id: Long) {
+        val event = eventRepository.findByIdOrNull(id) ?: throw ResourceNotFoundException("Event with id $id not found")
         participantRepository.deleteAll(event.participants)
         eventRepository.flush()
-        eventRepository.deleteById(eventId)
+        eventRepository.deleteById(id)
         eventRepository.flush()
     }
 
-    @GetMapping("{personId}/startYear/{startYear}")
+    @GetMapping("/api/events/{personId}/startYear/{startYear}")
     fun getAllEvents(@PathVariable personId: Long, @PathVariable startYear: Int): List<ParticipantDto> {
         val participants = participantRepository.findAllByIdPersonIdAndIdEventSeasonStartYear(personId, startYear)
 
         return participants.map { it.toDto() }
     }
 
-    @GetMapping("{personId}/notSeason/{seasonId}")
+    @GetMapping("/api/events/{personId}/notSeason/{seasonId}")
     fun getAllEvents2(@PathVariable personId: Long, @PathVariable seasonId: Long): List<ParticipantDto> {
         val participants = participantRepository.findAllByIdPersonIdAndIdEventSeasonIdIsNot(personId, seasonId)
 
         return participants.map { it.toDto() }
     }
 
-    @GetMapping("participations/{personId}")
+    @GetMapping(ApiEvents.PARTICIPATIONS_PERSONID)
     fun getAllPersonEvents(@PathVariable personId: Long): PersonEventsDto = participantRepository.findAllByIdPersonId(personId).takeIf { it.isNotEmpty() }?.let {
         PersonEventsDto(
             personId = it.first().id.person.id!!,

@@ -1,5 +1,6 @@
 package login
 
+import ApiAdmin
 import authentication.getIsAuthenticated
 import csstype.em
 import dto.ChangePasswordDto
@@ -147,7 +148,7 @@ val ChangePassword = FC<Props> {
 suspend fun putChangePassword(oldPassword: String, newPassword: String): Boolean {
     val body = ChangePasswordDto(oldPassword, newPassword)
     val response = window.fetch(
-        "/api/admin", RequestInit(
+        ApiAdmin.BASE_PATH, RequestInit(
             method = "PUT",
             headers = Headers().apply {
                 append("Content-Type", "application/json")

@@ -1,5 +1,6 @@
 package seasons
 
+import ApiSeasons
 import dto.EventDto
 import dto.EventPostDto
 import dto.SeasonDto
@@ -11,11 +12,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestInit
-
-private const val seasonsApiBasePath = "/api/seasons"
+import replacePathVariables
 
 suspend fun getSeasons(excludeEvents: Boolean): List<SeasonDto> {
-    val result = window.fetch("$seasonsApiBasePath?excludeEvents=$excludeEvents").await()
+    val result = window.fetch("${ApiSeasons.BASE_PATH}?excludeEvents=$excludeEvents").await()
 
     return if (result.ok) {
         Json.decodeFromString(result.text().await())
@@ -25,7 +25,7 @@ suspend fun getSeasons(excludeEvents: Boolean): List<SeasonDto> {
 }
 
 suspend fun getSeason(id: Long, excludeEvents: Boolean): SeasonDto {
-    val result = window.fetch("$seasonsApiBasePath/$id?excludeEvents=$excludeEvents").await()
+    val result = window.fetch("${ApiSeasons.ID.replacePathVariables(id)}?excludeEvents=$excludeEvents").await()
     return if (result.ok) {
         Json.decodeFromString(result.text().await())
     } else {
@@ -35,7 +35,7 @@ suspend fun getSeason(id: Long, excludeEvents: Boolean): SeasonDto {
 
 suspend fun postSeason(seasonDto: SeasonPostDto): SeasonDto {
     val result = window.fetch(
-        seasonsApiBasePath,
+        ApiSeasons.BASE_PATH,
         RequestInit(
             method = "POST",
             body = Json.encodeToJsonElement(seasonDto),
@@ -51,7 +51,7 @@ suspend fun postSeason(seasonDto: SeasonPostDto): SeasonDto {
 
 suspend fun putSeason(id: Long, seasonDto: SeasonPostDto): SeasonDto {
     val result = window.fetch(
-        "$seasonsApiBasePath/$id",
+        ApiSeasons.ID.replacePathVariables(id),
         RequestInit(
             method = "PATCH",
             body = Json.encodeToJsonElement(seasonDto),
@@ -66,7 +66,7 @@ suspend fun putSeason(id: Long, seasonDto: SeasonPostDto): SeasonDto {
 }
 
 suspend fun deleteSeason(id: Long) {
-    val result = window.fetch("$seasonsApiBasePath/$id", RequestInit(method = "DELETE")).await()
+    val result = window.fetch(ApiSeasons.ID.replacePathVariables(id), RequestInit(method = "DELETE")).await()
 
     if (!result.ok) {
         throw Exception("Error deleting season: ${result.status}-${result.statusText}: ${result.text().await()}")
@@ -75,7 +75,7 @@ suspend fun deleteSeason(id: Long) {
 
 suspend fun postSeasonEvent(id: Long, event: EventPostDto): EventDto {
     val result = window.fetch(
-        "$seasonsApiBasePath/$id/events",
+        ApiSeasons.ID_EVENTS.replacePathVariables(id),
         RequestInit(
             method = "POST",
             body = Json.encodeToJsonElement(event),

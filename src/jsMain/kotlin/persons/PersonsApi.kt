@@ -1,5 +1,6 @@
 package persons
 
+import ApiPersons
 import dto.PersonDto
 import browser.window
 import kotlinx.coroutines.await
@@ -8,11 +9,10 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.encodeToJsonElement
 import org.w3c.fetch.Headers
 import org.w3c.fetch.RequestInit
-
-private const val personApiBasePath = "/api/persons"
+import replacePathVariables
 
 suspend fun getPerson(id: Long?): PersonDto? {
-    val response = window.fetch("$personApiBasePath/$id").await()
+    val response = window.fetch(ApiPersons.ID.replacePathVariables(id)).await()
     return if (response.ok) {
         Json.decodeFromString(response.text().await())
     } else {
@@ -23,7 +23,7 @@ suspend fun getPerson(id: Long?): PersonDto? {
 
 suspend fun postPerson(person: PersonDto): PersonDto {
     val response = window.fetch(
-        personApiBasePath,
+        ApiPersons.BASE_PATH,
         RequestInit(
             method = "POST",
             body = Json.encodeToJsonElement(person),
@@ -38,7 +38,7 @@ suspend fun postPerson(person: PersonDto): PersonDto {
 
 suspend fun putPerson(person: PersonDto): PersonDto {
     val response = window.fetch(
-        "$personApiBasePath/${person.id}",
+        ApiPersons.ID.replacePathVariables(person.id),
         RequestInit(
             method = "PUT",
             body = Json.encodeToJsonElement(person),
@@ -54,7 +54,7 @@ suspend fun putPerson(person: PersonDto): PersonDto {
 // Kommentar for egen del: Var nødt til å ta inn kotlinx-json greier og bruke
 // Json.decodeFromString for at det skulle fungere
 suspend fun fetchPersons(includeRetired: Boolean = false): List<PersonDto> {
-    val response = kotlinx.browser.window.fetch("$personApiBasePath?includeRetired=$includeRetired").await()
+    val response = window.fetch("${ApiPersons.BASE_PATH}?includeRetired=$includeRetired").await()
     return if (response.ok) {
         val jsonContent: String = response.text().await()
         val parsed = Json.decodeFromString<List<PersonDto>>(jsonContent)

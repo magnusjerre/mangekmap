@@ -13,7 +13,6 @@ import org.springframework.stereotype.Repository
 @Repository
 interface EventRepository : JpaRepository<Event, Long> {
     fun findAllBySeasonId(seasonId: Long): List<Event>
-    fun findAllBySeasonStartYear(startYear: String): List<Event>
     fun findBySeasonIdAndTitle(seasonId: Long, name: String): Event?
 }
 

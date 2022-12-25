@@ -1,5 +1,6 @@
 package com.experis.mangekamp.controllers.seasons
 
+import ApiSeasons
 import com.experis.mangekamp.controllers.events.toDto
 import com.experis.mangekamp.controllers.events.toModel
 import com.experis.mangekamp.exceptions.ResourceNotFoundException
@@ -20,12 +21,10 @@ import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("api/seasons")
 class SeasonsController(
     private val eventRepository: EventRepository,
     private val categoryRepository: CategoryRepository,
@@ -35,10 +34,10 @@ class SeasonsController(
 
     private val logger = LoggerFactory.getLogger(SeasonsController::class.java)
 
-    @GetMapping
+    @GetMapping(ApiSeasons.BASE_PATH)
     fun getSeasons(): List<SeasonDto> = seasonRepository.findAll().map { it.toDtoSimple() }
 
-    @GetMapping("{id}")
+    @GetMapping(ApiSeasons.ID)
     fun getSeason(@PathVariable id: Long, @RequestParam excludeEvents: Boolean = false): SeasonDto {
         val startTime = System.currentTimeMillis()
         val season =
@@ -68,12 +67,12 @@ class SeasonsController(
         return output
     }
 
-    @PostMapping
+    @PostMapping(ApiSeasons.BASE_PATH)
     fun postSeason(@RequestBody seasonDto: SeasonPostDto): SeasonDto {
         return seasonRepository.save(seasonDto.toModel()).let { it.toDto(it.events) }
     }
 
-    @PatchMapping("{id}")
+    @PatchMapping(ApiSeasons.ID)
     fun patchSeason(@PathVariable id: Long, @RequestBody seasonDto: SeasonPostDto): SeasonDto {
         val season =
             seasonRepository.findById(id).orElseThrow { ResourceNotFoundException("Season with id $id not foun") }
@@ -86,7 +85,7 @@ class SeasonsController(
         return seasonRepository.save(season).toDto(season.events)
     }
 
-    @PostMapping("{id}/events")
+    @PostMapping(ApiSeasons.ID_EVENTS)
     fun postSeasonEvent(@PathVariable id: Long, @RequestBody event: EventPostDto): EventDto {
         val season =
             seasonRepository.findByIdOrNull(id) ?: throw ResourceNotFoundException("Season with id $id not found")
@@ -96,8 +95,8 @@ class SeasonsController(
         return eventRepository.save(eventToSave).toDto()
     }
 
-    @DeleteMapping("{id}")
-    fun deleleteSeason(@PathVariable id: Long) {
+    @DeleteMapping(ApiSeasons.ID)
+    fun deleteSeason(@PathVariable id: Long) {
         seasonRepository.deleteById(id)
     }
 }

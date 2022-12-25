@@ -1,5 +1,6 @@
 package com.experis.mangekamp.controllers.csvimport
 
+import ApiCsvImport
 import MANGEKJEMPER_REQUIRED_EVENTS
 import com.experis.mangekamp.controllers.seasons.toDto
 import com.experis.mangekamp.models.Category
@@ -15,16 +16,14 @@ import com.experis.mangekamp.repositories.ParticipantRepository
 import com.experis.mangekamp.repositories.PersonRepository
 import com.experis.mangekamp.repositories.SeasonRepository
 import dto.SeasonDto
-import java.nio.charset.Charset
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.multipart.MultipartFile
+import java.nio.charset.Charset
 
 @RestController
-@RequestMapping("api/import")
 class CsvImportController(
     private val categoryRepository: CategoryRepository,
     private val eventRepository: EventRepository,
@@ -33,7 +32,7 @@ class CsvImportController(
     private val seasonRepository: SeasonRepository,
 ) {
 
-    @PostMapping("persons")
+    @PostMapping(ApiCsvImport.PERSONS)
     fun postImportPersons(@RequestBody csv: MultipartFile): Int {
         val lines = csv.resource.inputStream.use {
             it.bufferedReader(Charset.forName("UTF-8")).readLines()
@@ -42,7 +41,7 @@ class CsvImportController(
         return personRepository.saveAllAndFlush(persons).size
     }
 
-    @PostMapping("events")
+    @PostMapping(ApiCsvImport.EVENTS)
     fun postImportEvents(@RequestBody csv: MultipartFile): SeasonDto {
         val lines = csv.resource.inputStream.use {
             it.bufferedReader(Charset.forName("UTF-8")).readLines()

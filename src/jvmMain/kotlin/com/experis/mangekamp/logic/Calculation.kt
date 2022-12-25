@@ -5,7 +5,6 @@ import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Gender
 import java.lang.Integer.max
 import java.lang.Integer.min
-import kotlin.math.exp
 
 fun List<Event>.calculateSeason(
     seasonId: Long,

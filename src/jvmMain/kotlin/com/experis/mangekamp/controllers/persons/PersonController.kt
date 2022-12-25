@@ -1,5 +1,6 @@
 package com.experis.mangekamp.controllers.persons
 
+import ApiPersons
 import com.experis.mangekamp.exceptions.ResourceNotFoundException
 import com.experis.mangekamp.models.Gender
 import com.experis.mangekamp.repositories.PersonRepository
@@ -10,16 +11,14 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("api/persons")
 class PersonController(
     private val personRepository: PersonRepository
 ) {
-    @GetMapping
+    @GetMapping(ApiPersons.BASE_PATH)
     fun getPersons(@RequestParam includeRetired: Boolean? = false): List<PersonDto> {
         val persons = if (includeRetired == true)
             personRepository.findAll()
@@ -37,15 +36,15 @@ class PersonController(
         }
     }
 
-    @GetMapping("/{id}")
+    @GetMapping(ApiPersons.ID)
     fun getPerson(@PathVariable id: Long): PersonDto =
         personRepository.findById(id).orElseThrow { ResourceNotFoundException("Person with id $id not found") }.toDto()
 
-    @PostMapping
+    @PostMapping(ApiPersons.BASE_PATH)
     fun createPerson(@RequestBody dto: PersonDto): PersonDto =
         personRepository.save(dto.toModel().apply { id = null }).toDto()
 
-    @PutMapping("/{id}")
+    @PutMapping(ApiPersons.ID)
     fun putPerson(@PathVariable id: Long, @RequestBody changes: PersonDto): PersonDto {
         val person = personRepository.findById(id).orElseThrow {
             ResourceNotFoundException("Person with id $id not found")

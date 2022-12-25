@@ -1,15 +1,14 @@
 package categories
 
+import ApiCategories
 import dto.CategoryDto
 import kotlinx.browser.window
 import kotlinx.coroutines.await
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 
-private const val categoriesApiBasPath = "/api/categories"
-
 suspend fun getCategories(): List<CategoryDto> {
-    val response = window.fetch(categoriesApiBasPath).await();
+    val response = window.fetch(ApiCategories.BASE_PATH).await();
 
     return if (response.ok) {
         Json.decodeFromString(response.text().await())
@@ -19,7 +18,7 @@ suspend fun getCategories(): List<CategoryDto> {
 }
 
 suspend fun getCategory(id: Long): CategoryDto {
-    val response = window.fetch("$categoriesApiBasPath/$id").await()
+    val response = window.fetch(ApiCategories.ID).await()
 
     return if(response.ok) {
         Json.decodeFromString(response.text().await())
