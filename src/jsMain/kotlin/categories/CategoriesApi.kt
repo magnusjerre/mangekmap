@@ -16,13 +16,3 @@ suspend fun getCategories(): List<CategoryDto> {
         throw Exception("Error getting catgories: ${response.status}-${response.statusText}: ${response.text().await()}")
     }
 }
-
-suspend fun getCategory(id: Long): CategoryDto {
-    val response = window.fetch(ApiCategories.ID).await()
-
-    return if(response.ok) {
-        Json.decodeFromString(response.text().await())
-    } else {
-        throw Exception("Error getting category by id: ${response.status}-${response.statusText}: ${response.text().await()}")
-    }
-}

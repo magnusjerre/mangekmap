@@ -25,7 +25,6 @@ class ApiPersons {
 class ApiCategories {
     companion object {
         const val BASE_PATH = "/api/categories"
-        const val ID = "$BASE_PATH/{id}"
     }
 }
 
