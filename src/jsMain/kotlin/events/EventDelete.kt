@@ -1,39 +1,34 @@
 package events
 
-import csstype.Display
-import csstype.em
+import AppAlertUsageProps
+import components.ButtonTexts
+import components.ModificationButtons
+import components.OnHandler
+import components.OnResult
 import csstype.px
 import dto.EventPostDto
 import kotlinx.coroutines.launch
-import kotlinx.js.timers.setTimeout
 import mainScope
 import mui.material.Alert
 import mui.material.AlertColor
 import mui.material.AlertVariant
 import mui.material.Box
-import mui.material.Button
-import mui.material.ButtonVariant
 import mui.material.Typography
 import mui.material.styles.TypographyVariant
 import mui.system.Stack
 import mui.system.sx
 import react.FC
-import react.Props
 import react.router.dom.Link
-import react.router.useNavigate
 import react.router.useParams
 import react.useEffectOnce
 import react.useState
 
-val EventDelete = FC<Props> {
+val EventDelete = FC<AppAlertUsageProps> { props ->
     val params = useParams()
     var seasonId by useState<Long?>(null)
     var eventId by useState(params["eventId"]?.toLong())
     var event by useState(EventPostDto(date = "", title = "", categoryId = 0, venue = "", isTeamBased = false))
-    var showSuccess by useState(false)
     var successfullyDeleted by useState(false)
-    var loading by useState(false)
-    val navigate = useNavigate()
 
     useEffectOnce {
         mainScope.launch {
@@ -76,61 +71,23 @@ val EventDelete = FC<Props> {
             asDynamic().spacing = 3
 
             Link {
-                to = if (!successfullyDeleted) {
-                    "/events/$eventId"
-                } else {
-                    "/seasons/$seasonId"
-                }
-                if (!successfullyDeleted) {
-                    +"Tilbake til øvelse"
-                } else {
-                    +"Tilbake til sesong"
-                }
+                to = "/seasons/$seasonId"
+                +"Tilbake til sesong"
             }
 
-
-            if (showSuccess) {
-                Alert {
-                    variant = AlertVariant.outlined
-                    severity = AlertColor.success
-                    +"Endringer lagret"
-                }
-            }
-
-            Box {
-                sx {
-                    display = Display.flex
-                    marginTop = 1.em
-                }
-
-                Button {
-                    disabled = loading
-                    variant = ButtonVariant.contained
-                    onClick = {
-                        mainScope.launch {
-                            loading = true
-                            deleteEvent(eventId!!)
-                            loading = false
-                            showSuccess = true
-                            successfullyDeleted = true
-
-                            setTimeout({
-                                showSuccess = false
-                            }, 1500)
-                        }
-                    }
-                    +"Slett øvelse"
-                }
-
-                if (!successfullyDeleted) {
-                    Button {
-                        variant = ButtonVariant.outlined
-                        onClick = {
-                            navigate("/events/$eventId")
-                        }
-                        +"Avbryt"
+            ModificationButtons {
+                onSave = object : OnHandler {
+                    override suspend fun handle(): OnResult {
+                        deleteEvent(eventId!!)
+                        return OnResult(
+                            if (seasonId != null) "/seasons/$seasonId" else "/",
+                            """Slettet øvelse "${event.title}""""
+                        )
                     }
                 }
+                cancelRedirectUri = "/events/$eventId"
+                handleAlert = props.handleAlert
+                buttonTexts = ButtonTexts(saveButtonText = "Slett øvelse")
             }
         }
     }

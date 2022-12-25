@@ -1,6 +1,11 @@
 package seasons
 
+import AppAlertUsageProps
 import MANGEKJEMPER_REQUIRED_EVENTS
+import components.ButtonTexts
+import components.ModificationButtons
+import components.OnHandler
+import components.OnResult
 import csstype.AlignItems
 import csstype.Display
 import csstype.FlexDirection
@@ -13,43 +18,30 @@ import dto.SeasonPostDto
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 import mainScope
-import mui.material.Button
-import mui.material.ButtonColor
-import mui.material.ButtonVariant
 import mui.material.CircularProgress
 import mui.material.FormControl
 import mui.material.InputBaseProps
 import mui.material.InputLabel
 import mui.material.MenuItem
 import mui.material.Select
-import mui.material.Stack
-import mui.material.StackDirection
 import mui.material.TextField
 import mui.system.Box
-import mui.system.ResponsiveStyleValue
-import mui.system.Spacing
-import mui.system.responsive
 import mui.system.sx
 import react.FC
-import react.Props
 import react.ReactNode
 import react.dom.html.ReactHTML.h1
 import react.key
-import react.router.useNavigate
 import react.router.useParams
 import react.useEffectOnce
 import react.useState
 
-val SeasonEdit = FC<Props> {
+val SeasonEdit = FC<AppAlertUsageProps> { props ->
     val seasonId = useParams()["id"]?.toLongOrNull()
     var seasonName by useState("")
     var seasonYear by useState("")
     var seasonRegion by useState(RegionDto.OSLO)
     var mangekjemperRequiredEvents by useState("$MANGEKJEMPER_REQUIRED_EVENTS")
     var fetching by useState(false)
-    val navigate = useNavigate()
-    var buttonsDisabled by useState(false)
-    var showDeleteWarning by useState(false)
 
     useEffectOnce {
         mainScope.launch {
@@ -57,7 +49,6 @@ val SeasonEdit = FC<Props> {
 
             fetching = true
             val season = getSeason(seasonId, excludeEvents = true)
-            console.log("season response", season)
             seasonName = season.name
             seasonYear = season.startYear.toString()
             mangekjemperRequiredEvents = season.mangekjemperRequiredEvents.toString()
@@ -165,90 +156,37 @@ val SeasonEdit = FC<Props> {
             }
         }
 
-        if (showDeleteWarning) {
-            Stack {
-                sx {
-                    marginTop = 1.em
-                }
-                direction = responsive(StackDirection.row)
-                spacing = responsive(2)
-                Button {
-                    variant = ButtonVariant.outlined
-                    onClick = {
-                        mainScope.launch {
-                            deleteSeason(seasonId!!)
-                            navigate("/")
-                        }
-                    }
-                    +"Ja, slett!"
-                }
-                Button {
-                    variant = ButtonVariant.outlined
-                    onClick = {
-                        showDeleteWarning = false
-                    }
-                    +"Nei"
+        ModificationButtons {
+            onDelete = if (seasonId == null) null else object: OnHandler {
+                override suspend fun handle(): OnResult {
+                    deleteSeason(seasonId)
+                    return OnResult("/", """Slettet sesongen "$seasonName"""")
                 }
             }
-        } else {
-            Box {
-                sx {
-                    display = Display.flex
-                    marginTop = 1.em
-                }
-
-                Button {
-                    disabled = buttonsDisabled
-                    variant = ButtonVariant.contained
-                    onClick = {
-                        mainScope.launch {
-                            buttonsDisabled = true
-                            val seasonRequestDto =
-                                SeasonPostDto(
-                                    seasonName,
-                                    seasonYear.toInt(),
-                                    mangekjemperRequiredEvents.toShort(),
-                                    seasonRegion
-                                )
-                            val seasonResponseDto = if (seasonId == null) postSeason(seasonRequestDto) else putSeason(
-                                seasonId,
-                                seasonRequestDto
-                            )
-                            seasonName = seasonResponseDto.name
-                            seasonYear = seasonResponseDto.startYear.toString()
-                            mangekjemperRequiredEvents = seasonResponseDto.mangekjemperRequiredEvents.toString()
-                            seasonRegion = seasonResponseDto.region
-                            navigate("/")
-                        }
-                    }
-                    +"Lagre"
-                }
-                Button {
-                    sx {
-                        marginLeft = 1.em
-                    }
-                    variant = ButtonVariant.outlined
-                    disabled = buttonsDisabled
-                    onClick = {
-                        navigate("/")
-                    }
-                    +"Avbryt"
+            deleteRedirectUri = "/"
+            onSave = object: OnHandler {
+                override suspend fun handle(): OnResult {
+                    val seasonRequestDto =
+                        SeasonPostDto(
+                            seasonName,
+                            seasonYear.toInt(),
+                            mangekjemperRequiredEvents.toShort(),
+                            seasonRegion
+                        )
+                    val seasonResponseDto = if (seasonId == null) postSeason(seasonRequestDto) else putSeason(
+                        seasonId,
+                        seasonRequestDto
+                    )
+                    seasonName = seasonResponseDto.name
+                    seasonYear = seasonResponseDto.startYear.toString()
+                    mangekjemperRequiredEvents = seasonResponseDto.mangekjemperRequiredEvents.toString()
+                    seasonRegion = seasonResponseDto.region
+                    return OnResult("/","""Redigert sesonginfo for "$seasonName"""")
                 }
             }
-
-            if (seasonId != null) {
-                Button {
-                    sx {
-                        marginTop = 2.em
-                    }
-                    color = ButtonColor.warning
-                    variant = ButtonVariant.text
-                    onClick = {
-                        showDeleteWarning = true
-                    }
-                    +"Slett sesong"
-                }
-            }
+            cancelRedirectUri = "/"
+            buttonTexts = ButtonTexts(deleteButtonText = "Slett sesong")
+            handleAlert = props.handleAlert
         }
     }
 }

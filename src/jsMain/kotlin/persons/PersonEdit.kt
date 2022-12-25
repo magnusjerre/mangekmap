@@ -1,7 +1,10 @@
 package persons
 
-import dto.GenderDto
-import dto.PersonDto
+import AppAlertUsageProps
+import components.ButtonTexts
+import components.ModificationButtons
+import components.OnHandler
+import components.OnResult
 import csstype.AlignItems
 import csstype.Display
 import csstype.FlexDirection
@@ -9,11 +12,11 @@ import csstype.JustifyContent
 import csstype.Padding
 import csstype.em
 import csstype.px
+import dto.GenderDto
+import dto.PersonDto
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
 import mainScope
-import mui.material.Button
-import mui.material.ButtonVariant
 import mui.material.Checkbox
 import mui.material.FormControl
 import mui.material.FormControlLabel
@@ -26,20 +29,17 @@ import mui.material.TextField
 import mui.system.Box
 import mui.system.sx
 import react.FC
-import react.Props
 import react.ReactNode
 import react.create
 import react.dom.aria.ariaLabelledBy
 import react.dom.html.ReactHTML.h1
-import react.router.useNavigate
 import react.router.useParams
 import react.useEffectOnce
 import react.useState
 
-val PersonEdit = FC<Props> {
+val PersonEdit = FC<AppAlertUsageProps> { props ->
     val params = useParams()
     val personId = params["id"]?.toLongOrNull()
-    val navigate = useNavigate()
     var person by useState(PersonDto("", "", GenderDto.MALE, false))
 
     useEffectOnce {
@@ -144,36 +144,21 @@ val PersonEdit = FC<Props> {
             }
         }
 
-        Box {
-            sx {
-                display = Display.flex
-                marginTop = 1.em
-            }
-
-            Button {
-                variant = ButtonVariant.contained
-                onClick = {
-                    mainScope.launch {
-                        person = if (person.id == null) {
-                            postPerson(person)
-                        } else {
-                            putPerson(person)
-                        }
+        ModificationButtons {
+            onSave = object : OnHandler {
+                override suspend fun handle(): OnResult {
+                    return if (person.id == null) {
+                        postPerson(person)
+                        OnResult("/persons", """Opprettet person "${person.name}"""")
+                    } else {
+                        putPerson(person)
+                        OnResult("/persons", """Redigerte person "${person.name}"""")
                     }
                 }
-                +"Lagre"
             }
-
-            Button {
-                sx {
-                    marginLeft = 1.em
-                }
-                variant = ButtonVariant.outlined
-                onClick = {
-                    navigate.invoke("/persons")
-                }
-                +"Avbryt"
-            }
+            cancelRedirectUri = "/persons"
+            buttonTexts = ButtonTexts()
+            handleAlert = props.handleAlert
         }
     }
 }

@@ -1,21 +1,21 @@
 package events
 
+import AppAlertProps
+import AppAlertUsageProps
 import categories.getCategories
-import csstype.Display
+import components.ModificationButtons
+import components.OnHandler
+import components.OnResult
 import csstype.em
 import csstype.px
 import dto.CategoryDto
 import dto.EventPostDto
-import dto.ParticipantPostDto
 import kotlinx.coroutines.launch
 import kotlinx.js.jso
-import kotlinx.js.timers.setTimeout
 import mainScope
 import mui.material.Alert
 import mui.material.AlertColor
 import mui.material.AlertVariant
-import mui.material.Button
-import mui.material.ButtonVariant
 import mui.material.Checkbox
 import mui.material.FormControl
 import mui.material.FormControlLabel
@@ -30,7 +30,6 @@ import mui.system.Box
 import mui.system.Stack
 import mui.system.sx
 import react.FC
-import react.Props
 import react.ReactNode
 import react.create
 import react.dom.html.InputType
@@ -38,22 +37,17 @@ import react.dom.html.ReactHTML.h1
 import react.dom.onChange
 import react.key
 import react.router.dom.Link
-import react.router.useNavigate
 import react.router.useParams
 import react.useEffectOnce
 import react.useState
 import seasons.postSeasonEvent
 
-
-val EventEdit = FC<Props> {
+val EventEdit = FC<AppAlertUsageProps> { props ->
     val params = useParams()
     var seasonId by useState(params["seasonId"]?.toLong())
     var eventId by useState(params["eventId"]?.toLong())
     var categories by useState<List<CategoryDto>>(emptyList())
     var event by useState(EventPostDto(date = "", title = "", categoryId = 0, venue = "", isTeamBased = false))
-    var showSuccess by useState(false)
-    var loading by useState(false)
-    val navigate = useNavigate()
 
     if (eventId == null && seasonId == null) {
         Alert {
@@ -190,58 +184,27 @@ val EventEdit = FC<Props> {
             }
         }
 
-        if (showSuccess) {
-            Alert {
-                variant = AlertVariant.outlined
-                severity = AlertColor.success
-                +"Endringer lagret"
-            }
-        }
-
-        Box {
-            sx {
-                display = Display.flex
-                marginTop = 1.em
-            }
-
-            Button {
-                disabled = loading
-                variant = ButtonVariant.contained
-                onClick = {
-                    mainScope.launch {
-                        loading = true
-                        if (seasonId != null && eventId == null) {
-                            val eventDto = postSeasonEvent(seasonId!!, event)
-                            eventId = eventDto.id
-                            event = eventDto.let { EventPostDto(date = it.date, title = it.title, categoryId = it.category.id, venue = it.venue, isTeamBased = it.isTeamBased) }
-                        } else {
-                            patchEvent(eventId!!, event)
-                        }
-                        loading = false
-                        showSuccess = true
-
-                        setTimeout({
-                            showSuccess = false
-                        }, 1500)
-                    }
-                }
-                +"Lagre"
-            }
-
-            Button {
-                variant = ButtonVariant.outlined
-                onClick = {
-                    console.log("seasonId", seasonId.toString().toLong())
-                    console.log("events", eventId)
-                    console.log("params", params)
-                    if (eventId != null) {
-                        navigate("/events/$eventId")
+        ModificationButtons {
+            onSave = object : OnHandler {
+                override suspend fun handle(): OnResult {
+                    val s = AppAlertProps.success("Endringer lagret")
+                    if (seasonId != null && eventId == null) {
+                        val eventDto = postSeasonEvent(seasonId!!, event)
+                        eventId = eventDto.id
+                        event = eventDto.let { EventPostDto(date = it.date, title = it.title, categoryId = it.category.id, venue = it.venue, isTeamBased = it.isTeamBased) }
+                        return OnResult("/events/${eventDto.id}", """Opprettet ny øvelse "${eventDto.title}"""")
                     } else {
-                        navigate("/seasons/$seasonId")
+                        patchEvent(eventId!!, event)
+                        return OnResult("/events/$eventId", """Redigerte øvelse ${event.title}"""")
                     }
                 }
-                +"Avbryt"
             }
+            cancelRedirectUri = if (eventId != null) {
+                "/events/$eventId"
+            } else {
+                "/seasons/$seasonId"
+            }
+            handleAlert = props.handleAlert
         }
     }
 }
