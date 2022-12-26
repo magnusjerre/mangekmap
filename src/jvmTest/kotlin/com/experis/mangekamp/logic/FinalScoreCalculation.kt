@@ -10,16 +10,17 @@ class FinalScoreCalculation {
     @Test
     fun `Should correctly calculate season`() {
         val season = setupSeason(
+            id = 1,
             name = "2022-2023",
             region = Region.OSLO,
             mangekjemperRequiredEvents = 8,
-            persons = listOf(
+            actualPersons = listOf(
                 DONALD_DUCK,
                 OLE,
                 DOLE,
                 DOFFEN,
                 ONKEL_SKRUE,
-            ),
+            ).toActualPersons(),
             events = listOf(
                 minigolf()
                     .add(DONALD_DUCK, 1)
@@ -146,16 +147,17 @@ class FinalScoreCalculation {
     @Test
     fun `Should calculate mangekjemper rank for attendance only using the total number of mangekjempere`() {
         val season = setupSeason(
+            id = 1,
             name = "2022-2023",
             region = Region.OSLO,
             mangekjemperRequiredEvents = 4,
-            persons = listOf(
+            actualPersons = listOf(
                 DONALD_DUCK,
                 OLE,
                 DOLE,
                 DOFFEN,
                 ONKEL_SKRUE,
-            ),
+            ).toActualPersons(),
             events = listOf(
                 minigolf()
                     .add(DONALD_DUCK, 1)
@@ -246,11 +248,8 @@ class FinalScoreCalculation {
             DOLE,
             DOFFEN
         ).toActualPersons()
-        var id = 1L
-        val idGenerator: () -> Long = {
-            id++
-        }
-        val season = setupSeasonV2(
+        val idGenerator = idGenerator()
+        val season = setupSeason(
             id = 1,
             name = "season",
             region = Region.OSLO,
@@ -274,7 +273,7 @@ class FinalScoreCalculation {
             )
         )
 
-        val seasonOtherRegion1 = setupSeasonV2(
+        val seasonOtherRegion1 = setupSeason(
             id = 2,
             name = "season other 1",
             region = Region.TRONDHEIM,
@@ -290,7 +289,7 @@ class FinalScoreCalculation {
             )
         )
 
-        val seasonOtherRegion2 = setupSeasonV2(
+        val seasonOtherRegion2 = setupSeason(
             id = 3,
             name = "season other 2",
             region = Region.BERGEN,

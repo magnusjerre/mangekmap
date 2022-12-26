@@ -51,56 +51,15 @@ fun List<SetupPerson>.toActualPersons(): List<Person> = map {
     }
 }
 
-fun setupSeason(name: String, region: Region, mangekjemperRequiredEvents: Short, persons: List<SetupPerson>, events: List<SetupEvent>): Season {
-    val actualPersons =
-        persons.map { Person(name = it.name, email = it.name, gender = it.gender, retired = false, id = it.id) }
-
-    fun getPerson(sp: SetupParticipant): Person = actualPersons.find { it.name == sp.name }
-        ?: throw NullPointerException("""Found no actual person for name "${sp.name}"""")
-
-    var date = LocalDate.of(2022, 8, 23)
-
-    val season = Season(
-        name = name,
-        startYear = 2022,
-        region = region,
-        mangekjemperRequiredEvents = mangekjemperRequiredEvents,
-        id = 1,
-        events = mutableListOf())
-
-    events.forEachIndexed { index, ev ->
-        val isTeamBased = ev.participants.filterNot { it.teamNumber == null }.groupBy { it.teamNumber }.any { it.component2().count() > 1 }
-        val participants = mutableListOf<Participant>()
-        val event = Event(
-            date = date,
-            title = ev.name,
-            category = ev.category.getAsCategory(),
-            venue = "",
-            participants = participants,
-            isTeamBased = isTeamBased,
-            id = (index + 1).toLong()
-        )
-        event.season = season
-        ev.participants.forEach { evParticipant ->
-            val person = getPerson(evParticipant)
-            val rank = if (evParticipant.attendanceOnly) ev.participants.count() else evParticipant.rank
-            val participant = Participant(
-                rank = rank,
-                isAttendanceOnly = evParticipant.attendanceOnly,
-                score = evParticipant.score ?: "",
-                teamNumber = evParticipant.teamNumber,
-                id = ParticipantId(person = person, event = event)
-            )
-            participants.add(participant)
-        }
-        season.events.add(event)
-        date = date.plusDays(20)
-    }
-
-    return season
-}
-
-fun setupSeasonV2(id: Long, name: String, region: Region, mangekjemperRequiredEvents: Short, eventIdGenerator: () -> Long, actualPersons: List<Person>, events: List<SetupEvent>): Season {
+fun setupSeason(
+    id: Long,
+    name: String,
+    region: Region,
+    mangekjemperRequiredEvents: Short,
+    eventIdGenerator: () -> Long = idGenerator(),
+    actualPersons: List<Person>,
+    events: List<SetupEvent>
+): Season {
     fun getPerson(sp: SetupParticipant): Person = actualPersons.find { it.name == sp.name }
         ?: throw NullPointerException("""Found no actual person for name "${sp.name}"""")
 
@@ -112,10 +71,12 @@ fun setupSeasonV2(id: Long, name: String, region: Region, mangekjemperRequiredEv
         region = region,
         mangekjemperRequiredEvents = mangekjemperRequiredEvents,
         id = id,
-        events = mutableListOf())
+        events = mutableListOf()
+    )
 
     events.forEachIndexed { index, ev ->
-        val isTeamBased = ev.participants.any { it.teamNumber != null } //filterNot { it.teamNumber == null }.groupBy { it.teamNumber }.any { it.component2().count() > 1 }
+        val isTeamBased =
+            ev.participants.any { it.teamNumber != null } //filterNot { it.teamNumber == null }.groupBy { it.teamNumber }.any { it.component2().count() > 1 }
         val participants = mutableListOf<Participant>()
         val event = Event(
             date = date,
@@ -171,3 +132,10 @@ fun poker() = SetupEvent(POKER, SetupCategory.TEKNIKK)
 fun esport() = SetupEvent(ESPORT, SetupCategory.TEKNIKK)
 fun tennisDouble() = SetupEvent(TENNIS_DOUBLE, SetupCategory.BALL)
 fun padel() = SetupEvent(PADEL, SetupCategory.BALL)
+
+fun idGenerator(startValue: Long = 1L): () -> Long {
+    var id = startValue
+    return {
+        id++
+    }
+}
