@@ -1,6 +1,5 @@
 package com.experis.mangekamp.logic
 
-import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Gender
 import com.experis.mangekamp.models.Region
 import io.kotest.inspectors.shouldForAll
@@ -8,71 +7,6 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 
 class FinalScoreCalculation {
-    @Test
-    fun `Should calculate mangekjemper rank for attendance only using the total number of mangekjempere`() {
-        val season = setupSeason(
-            name = "2022-2023",
-            region = Region.OSLO,
-            mangekjemperRequiredEvents = 4,
-            persons = listOf(
-                DONALD_DUCK,
-                OLE,
-                DOLE,
-                DOFFEN,
-                ONKEL_SKRUE,
-            ),
-            events = listOf(
-                minigolf()
-                    .add(DONALD_DUCK, 1)
-                    .add(OLE, 2)
-                    .add(ONKEL_SKRUE, 3)
-                    .add(DOLE, 4)
-                    .add(DOFFEN, 5),
-                orientering()
-                    .add(DONALD_DUCK, 1)
-                    .add(OLE, 2)
-                    .add(ONKEL_SKRUE, 3)
-                    .add(DOLE, 4)
-                    .add(DOFFEN, 5),
-                bordtennis()
-                    .add(DONALD_DUCK, 1)
-                    .add(OLE, 2)
-                    .add(ONKEL_SKRUE, 3)
-                    .add(DOLE, 4)
-                    .add(DOFFEN, 5),
-                frisbeegolf()
-                    .add(DONALD_DUCK, 1)
-                    .add(ONKEL_SKRUE, 2)
-                    .add(DOLE, 3)
-                    .addAttendanceOnly(DOFFEN),
-                roing()
-                    .add(DONALD_DUCK, 1)
-                    .addAttendanceOnly(DOLE)
-            )
-        )
-
-        val result = season.events.calculateSeason(
-            seasonId = season.id!!,
-            gender = Gender.MALE,
-            expectedMangekjemperEvents = season.mangekjemperRequiredEvents.toInt()
-        ) { it.events.isMangekjemper(season.mangekjemperRequiredEvents.toInt())}
-        val winner = result[0]
-        winner.shouldHave(name = DONALD_DUCK.name, seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
-        winner.shouldHaveMangekjemperRanks(listOf(1.b, 1.k, 1.b, 1.t, 1.t), season.events)
-        val second = result[1]
-        second.shouldHave(name = "Onkel Skrue", seasonRank = 2, seasonPoints = 8, mangekjemperStatus = true)
-        second.shouldHaveMangekjemperRanks(listOf(2.b, 2.k, 2.b, 2.t, 0.t), season.events)
-        val third = result[2]
-        third.shouldHave(name = "Dole", seasonRank = 3, seasonPoints = 12, mangekjemperStatus = true)
-        third.shouldHaveMangekjemperRanks(listOf(3.b, 3.k, 3.b, 3.t, 4.t), season.events)
-        val fourth = result[3]
-        fourth.shouldHave(name = "Doffen", seasonRank = 4, 16, mangekjemperStatus = true)
-        fourth.shouldHaveMangekjemperRanks(listOf(4.b, 4.k, 4.b, 4.t, 0.t), season.events)
-        val fifth = result[4]
-        fifth.shouldHave(name = "Ole", seasonRank = 5, seasonPoints = 10, mangekjemperStatus = false)
-        fifth.shouldHaveMangekjemperRanks(listOf(0.b, 0.k, 0.b, 0.t, 0.t), season.events)
-    }
-
     @Test
     fun `Should correctly calculate season`() {
         val season = setupSeason(
@@ -143,20 +77,165 @@ class FinalScoreCalculation {
         ) { it.events.isMangekjemper(season.mangekjemperRequiredEvents.toInt())}
 
         val winner = result[0]
-        winner.shouldHave(name = DONALD_DUCK.name, seasonRank = 1, seasonPoints = 10, mangekjemperStatus = true)
-        winner.shouldHaveMangekjemperRanks(listOf(1.b, 1.k, 1.b, 2.t, 1.k, 2.t, 1.t, 1.b, 1.b), season.events)
+        winner.shouldHave(person = DONALD_DUCK, seasonRank = 1, seasonPoints = 10, mangekjemperStatus = true)
+        winner.shouldHaveMangekjemperRanks(
+            MINIGOLF to 1,
+            ORIENTERING to 1,
+            BORDTENNIS to 1,
+            FRISBEEGOLF to 2,
+            ROING to 1,
+            POKER to 2,
+            ESPORT to 1,
+            TENNIS_DOUBLE to 1,
+            PADEL to 1,
+        )
         val second = result[1]
-        second.shouldHave(name = "Ole", seasonRank = 2, seasonPoints = 17, mangekjemperStatus = true)
-        second.shouldHaveMangekjemperRanks(listOf(3.b, 2.k, 2.b, 3.t, 2.k, 1.t, 2.t, 2.b, 3.b), season.events)
+        second.shouldHave(person = OLE, seasonRank = 2, seasonPoints = 17, mangekjemperStatus = true)
+        second.shouldHaveMangekjemperRanks(
+            MINIGOLF to 3,
+            ORIENTERING to 2,
+            BORDTENNIS to 2,
+            FRISBEEGOLF to 3,
+            ROING to 2,
+            POKER to 1,
+            ESPORT to 2,
+            TENNIS_DOUBLE to 2,
+            PADEL to 3,
+        )
         val third = result[2]
-        third.shouldHave(name = "Doffen", seasonRank = 3, seasonPoints = 18, mangekjemperStatus = true)
-        third.shouldHaveMangekjemperRanks(listOf(2.b, 3.k, 3.b, 1.t, 3.k, 3.t, 3.t, 1.b, 2.b), season.events)
+        third.shouldHave(person = DOFFEN, seasonRank = 3, seasonPoints = 18, mangekjemperStatus = true)
+        third.shouldHaveMangekjemperRanks(
+            MINIGOLF to 2,
+            ORIENTERING to 3,
+            BORDTENNIS to 3,
+            FRISBEEGOLF to 1,
+            ROING to 3,
+            POKER to 3,
+            ESPORT to 3,
+            TENNIS_DOUBLE to 1,
+            PADEL to 2,
+        )
         val fourth = result[3]
-        fourth.shouldHave(name = "Dole", seasonRank = 4, seasonPoints = 43, mangekjemperStatus = true)
-        fourth.shouldHaveMangekjemperRanks(listOf(4.b, 0.k, 4.b, 4.t, 4.k, 4.t, 4.t, 3.b, 4.b), season.events)
+        fourth.shouldHave(person = DOLE, seasonRank = 4, seasonPoints = 43, mangekjemperStatus = true)
+        fourth.shouldHaveMangekjemperRanks(
+            MINIGOLF to 4,
+            ORIENTERING to 0,
+            BORDTENNIS to 4,
+            FRISBEEGOLF to 4,
+            ROING to 4,
+            POKER to 4,
+            ESPORT to 4,
+            TENNIS_DOUBLE to 3,
+            PADEL to 4,
+        )
         val last = result[4]
-        last.shouldHave(name = "Onkel Skrue", seasonRank = 5, seasonPoints = 40, mangekjemperStatus = false)
-        last.shouldHaveMangekjemperRanks(listOf(0.b, 0.k, 0.b, 0.t, 0.k, 0.t, 0.t, 0.b, 0.b), season.events)
+        last.shouldHave(person = ONKEL_SKRUE, seasonRank = 5, seasonPoints = 40, mangekjemperStatus = false)
+        last.shouldHaveMangekjemperRanks(
+            MINIGOLF to 0,
+            ORIENTERING to 0,
+            BORDTENNIS to 0,
+            FRISBEEGOLF to 0,
+            ROING to 0,
+            POKER to 0,
+            ESPORT to 0,
+            TENNIS_DOUBLE to 0,
+            PADEL to 0,
+        )
+    }
+
+    @Test
+    fun `Should calculate mangekjemper rank for attendance only using the total number of mangekjempere`() {
+        val season = setupSeason(
+            name = "2022-2023",
+            region = Region.OSLO,
+            mangekjemperRequiredEvents = 4,
+            persons = listOf(
+                DONALD_DUCK,
+                OLE,
+                DOLE,
+                DOFFEN,
+                ONKEL_SKRUE,
+            ),
+            events = listOf(
+                minigolf()
+                    .add(DONALD_DUCK, 1)
+                    .add(OLE, 2)
+                    .add(ONKEL_SKRUE, 3)
+                    .add(DOLE, 4)
+                    .add(DOFFEN, 5),
+                orientering()
+                    .add(DONALD_DUCK, 1)
+                    .add(OLE, 2)
+                    .add(ONKEL_SKRUE, 3)
+                    .add(DOLE, 4)
+                    .add(DOFFEN, 5),
+                bordtennis()
+                    .add(DONALD_DUCK, 1)
+                    .add(OLE, 2)
+                    .add(ONKEL_SKRUE, 3)
+                    .add(DOLE, 4)
+                    .add(DOFFEN, 5),
+                frisbeegolf()
+                    .add(DONALD_DUCK, 1)
+                    .add(ONKEL_SKRUE, 2)
+                    .add(DOLE, 3)
+                    .addAttendanceOnly(DOFFEN),
+                roing()
+                    .add(DONALD_DUCK, 1)
+                    .addAttendanceOnly(DOLE)
+            )
+        )
+
+        val result = season.events.calculateSeason(
+            seasonId = season.id!!,
+            gender = Gender.MALE,
+            expectedMangekjemperEvents = season.mangekjemperRequiredEvents.toInt()
+        ) { it.events.isMangekjemper(season.mangekjemperRequiredEvents.toInt())}
+        val winner = result[0]
+        winner.shouldHave(person = DONALD_DUCK, seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
+        winner.shouldHaveMangekjemperRanks(
+            MINIGOLF to 1,
+            ORIENTERING to 1,
+            BORDTENNIS to 1,
+            FRISBEEGOLF to 1,
+            ROING to 1,
+        )
+        val second = result[1]
+        second.shouldHave(person = ONKEL_SKRUE, seasonRank = 2, seasonPoints = 8, mangekjemperStatus = true)
+        second.shouldHaveMangekjemperRanks(
+            MINIGOLF to 2,
+            ORIENTERING to 2,
+            BORDTENNIS to 2,
+            FRISBEEGOLF to 2,
+            ROING to 0,
+        )
+        val third = result[2]
+        third.shouldHave(person = DOLE, seasonRank = 3, seasonPoints = 12, mangekjemperStatus = true)
+        third.shouldHaveMangekjemperRanks(
+            MINIGOLF to 3,
+            ORIENTERING to 3,
+            BORDTENNIS to 3,
+            FRISBEEGOLF to 3,
+            ROING to 4,
+        )
+        val fourth = result[3]
+        fourth.shouldHave(person = DOFFEN, seasonRank = 4, 16, mangekjemperStatus = true)
+        fourth.shouldHaveMangekjemperRanks(
+            MINIGOLF to 4,
+            ORIENTERING to 4,
+            BORDTENNIS to 4,
+            FRISBEEGOLF to 4,
+            ROING to 0,
+        )
+        val fifth = result[4]
+        fifth.shouldHave(person = OLE, seasonRank = 5, seasonPoints = 10, mangekjemperStatus = false)
+        fifth.shouldHaveMangekjemperRanks(
+            MINIGOLF to 0,
+            ORIENTERING to 0,
+            BORDTENNIS to 0,
+            FRISBEEGOLF to 0,
+            ROING to 0,
+        )
     }
 
     @Test
@@ -239,29 +318,50 @@ class FinalScoreCalculation {
         ) { it.events.isMangekjemper(season.mangekjemperRequiredEvents.toInt())}
 
         val donaldMain = resultsMain.find { it.personName == DONALD_DUCK.name }!!
-        donaldMain.shouldHave(name = DONALD_DUCK.name, seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
-        donaldMain.shouldHaveMangekjemperRanks(listOf(1.b, 1.k, 1.b, 1.t), season.events)
+        donaldMain.shouldHave(person = DONALD_DUCK, seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
+        donaldMain.shouldHaveMangekjemperRanks(
+            MINIGOLF to 1,
+            ORIENTERING to 1,
+            BORDTENNIS to 1,
+            FRISBEEGOLF to 1,
+        )
         donaldMain.getEvent(MINIGOLF).eventPointsReason shouldBe PointsReason.MANGEKJEMPER
         donaldMain.getEvent(ORIENTERING).eventPointsReason shouldBe PointsReason.MANGEKJEMPER
         donaldMain.getEvent(BORDTENNIS).eventPointsReason shouldBe PointsReason.MANGEKJEMPER
         donaldMain.getEvent(FRISBEEGOLF).eventPointsReason shouldBe PointsReason.MANGEKJEMPER
         val oleMain = resultsMain.getParticipant(OLE)!!
-        oleMain.shouldHave(name = "Ole", seasonRank = 3, seasonPoints = 37, mangekjemperStatus = false)
-        oleMain.shouldHaveMangekjemperRanks(listOf(0.b, 0.k, 0.b, 0.t), season.events)
+        oleMain.shouldHave(person = OLE, seasonRank = 3, seasonPoints = 37, mangekjemperStatus = false)
+        oleMain.shouldHaveMangekjemperRanks(
+            MINIGOLF to 0,
+            ORIENTERING to 0,
+            BORDTENNIS to 0,
+            FRISBEEGOLF to 0,
+        )
         oleMain.getEvent(ORIENTERING).eventPointsReason shouldBe PointsReason.NOT_MANGEKJEMPER
         oleMain.getEvent(FRISBEEGOLF).eventPointsReason shouldBe PointsReason.NOT_MANGEKJEMPER
         oleMain.getEvent(ROING).eventPointsReason shouldBe PointsReason.OTHER_REGION_NOT_MANGEKJEMPER
         oleMain.getEvent(ESPORT).eventPointsReason shouldBe PointsReason.OTHER_REGION_NOT_MANGEKJEMPER
         oleMain.seasonPenaltyPoints shouldBe null
         val doleMain = resultsMain.getParticipant(DOLE)!!
-        doleMain.shouldHave(name = "Dole", seasonRank = 4, seasonPoints = 10, mangekjemperStatus = true)
-        doleMain.shouldHaveMangekjemperRanks(listOf(0.b, 1.k, 0.b, 0.t), season.events)
+        doleMain.shouldHave(person = DOLE, seasonRank = 4, seasonPoints = 10, mangekjemperStatus = true)
+        doleMain.shouldHaveMangekjemperRanks(
+            MINIGOLF to 0,
+            ORIENTERING to 1,
+            BORDTENNIS to 0,
+            FRISBEEGOLF to 0,
+        )
         doleMain.getEvent(ORIENTERING).eventPointsReason shouldBe PointsReason.MANGEKJEMPER
         doleMain.getEvent(ROING).eventPointsReason shouldBe PointsReason.OTHER_REGION_MANGEKJEMPER
         doleMain.getEvent(POKER).eventPointsReason shouldBe PointsReason.OTHER_REGION_MANGEKJEMPER
         doleMain.getEvent(TENNIS_DOUBLE).eventPointsReason shouldBe PointsReason.OTHER_REGION_MANGEKJEMPER
         val doffenMain = resultsMain.getParticipant(DOFFEN)!!
-        doffenMain.shouldHave(name = "Doffen", seasonRank = 2, seasonPoints = 11, mangekjemperStatus = true)
+        doffenMain.shouldHave(person = DOFFEN, seasonRank = 2, seasonPoints = 11, mangekjemperStatus = true)
+        doffenMain.shouldHaveMangekjemperRanks(
+            MINIGOLF to 0,
+            ORIENTERING to 3,
+            BORDTENNIS to 2,
+            FRISBEEGOLF to 0,
+        )
         doffenMain.getEvent(ORIENTERING).eventPointsReason shouldBe PointsReason.MANGEKJEMPER
         doffenMain.getEvent(BORDTENNIS).eventPointsReason shouldBe PointsReason.MANGEKJEMPER
         doffenMain.getEvent(ESPORT).eventPointsReason shouldBe PointsReason.OTHER_REGION_MANGEKJEMPER
@@ -277,11 +377,17 @@ class FinalScoreCalculation {
         }
         resultsOther1.find { it.personName == DONALD_DUCK.name } shouldBe null
         val oleOther1 = resultsOther1.getParticipant(OLE)!!
-        oleOther1.shouldHave(name = "Ole", seasonRank = 2, seasonPoints = 50, mangekjemperStatus = false)
-        oleOther1.shouldHaveMangekjemperRanks(listOf(0.k, 0.t), seasonOtherRegion1.events)
+        oleOther1.shouldHave(person = OLE, seasonRank = 2, seasonPoints = 50, mangekjemperStatus = false)
+        oleOther1.shouldHaveMangekjemperRanks(
+            ROING to 0,
+            POKER to 0
+        )
         val doleOther1 = resultsOther1.getParticipant(DOLE)!!
-        doleOther1.shouldHave(name = "Dole", seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
-        doleOther1.shouldHaveMangekjemperRanks(listOf(1.k, 1.t), seasonOtherRegion1.events)
+        doleOther1.shouldHave(person = DOLE, seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
+        doleOther1.shouldHaveMangekjemperRanks(
+            ROING to 1,
+            POKER to 1
+        )
         resultsOther1.getParticipant(DOFFEN) shouldBe null
 
         val resultsOther2 = allEvents.calculateSeason(
@@ -293,37 +399,43 @@ class FinalScoreCalculation {
         }
         resultsOther2.getParticipant(DONALD_DUCK) shouldBe null
         val oleOther2 = resultsOther2.getParticipant(OLE)!!
-        oleOther2.shouldHave(name = "Ole", seasonRank = 3, seasonPoints = 49, mangekjemperStatus = false)
-        oleOther2.shouldHaveMangekjemperRanks(listOf(0.t, 0.b, 0.b), seasonOtherRegion2.events)
+        oleOther2.shouldHave(person = OLE, seasonRank = 3, seasonPoints = 49, mangekjemperStatus = false)
+        oleOther2.shouldHaveMangekjemperRanks(
+            ESPORT to 0,
+            TENNIS_DOUBLE to 0,
+            PADEL to 0,
+        )
         val doleOther2 = resultsOther2.getParticipant(DOLE)!!
-        doleOther2.shouldHave(name = "Dole", seasonRank = 2, seasonPoints = 7, mangekjemperStatus = true)
-        doleOther2.shouldHaveMangekjemperRanks(listOf(0.t, 1.b, 0.b), seasonOtherRegion2.events)
+        doleOther2.shouldHave(person = DOLE, seasonRank = 2, seasonPoints = 7, mangekjemperStatus = true)
+        doleOther2.shouldHaveMangekjemperRanks(
+            ESPORT to 0,
+            TENNIS_DOUBLE to 1,
+            PADEL to 0
+        )
         val doffenOther2 = resultsOther2.getParticipant(DOFFEN)!!
-        doffenOther2.shouldHave(name = "Doffen", seasonRank = 1, seasonPoints = 6, mangekjemperStatus = true)
-        doffenOther2.shouldHaveMangekjemperRanks(listOf(1.t, 2.b, 1.b), seasonOtherRegion2.events)
+        doffenOther2.shouldHave(person = DOFFEN, seasonRank = 1, seasonPoints = 6, mangekjemperStatus = true)
+        doffenOther2.shouldHaveMangekjemperRanks(
+            ESPORT to 1,
+            TENNIS_DOUBLE to 2,
+            PADEL to 1
+        )
     }
 
-    private fun SeasonParticipant.shouldHave(name: String, seasonRank: Int, seasonPoints: Int, mangekjemperStatus: Boolean) {
-        this.personName shouldBe name
+    private fun SeasonParticipant.shouldHave(person: SetupPerson, seasonRank: Int, seasonPoints: Int, mangekjemperStatus: Boolean) {
+        this.personName shouldBe person.name
         this.seasonRank shouldBe seasonRank
         this.seasonPoints shouldBe seasonPoints
         this.isMangekjemper shouldBe mangekjemperStatus
     }
 
-    private fun SeasonParticipant.shouldHaveMangekjemperRanks(ranks: List<Int>, allEvents: List<Event>) {
-        ranks.mapIndexed { index, mangekjemperRank ->
-            val event = allEvents[index]
-            val simplifiedEvent = this.events.find { it.eventId == event.id }
-            "${event.title}-$mangekjemperRank" to "${event.title}-${simplifiedEvent?.mangekjemperRank ?: 0}"
-        }.shouldForAll {(expected, actual) ->
+    private fun SeasonParticipant.shouldHaveMangekjemperRanks(vararg ranks: Pair<String, Int>) {
+        ranks.map { (eventName, eventRank) ->
+            val simplifiedEvent = this.events.find { it.eventName == eventName }
+            "$eventName-$eventRank" to "$eventName-${simplifiedEvent?.mangekjemperRank ?: 0}"
+        }.shouldForAll { (expected, actual) ->
             actual shouldBe expected
         }
     }
-
-    // Extension property kun for å gjøre det lettere å lese hva som er ball, teknikk og kondis
-    private val Int.b: Int get() = this
-    private val Int.k: Int get() = this
-    private val Int.t: Int get() = this
 
     private fun SeasonParticipant.getEvent(eventName: String): SeasonSimplifiedEvent = events.find { it.eventName == eventName }!!
     private fun List<SeasonParticipant>.getParticipant(person: SetupPerson): SeasonParticipant? = find { it.personName == person.name }
