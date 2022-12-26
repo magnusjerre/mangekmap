@@ -4,6 +4,7 @@ class ApiEvents {
         const val PARTICIPATIONS_PERSONID = "$BASE_PATH/participations/{personId}"
         const val ID = "$BASE_PATH/{id}"
         const val ID_PARTICIPANTS = "$BASE_PATH/{eventId}/participants"
+        const val ID_PARTICIPANTS_RESULTS = "$BASE_PATH/{eventId}/participants/results"
     }
 }
 

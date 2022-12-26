@@ -36,13 +36,13 @@ class PersonController(
         }
     }
 
-    @GetMapping(ApiPersons.ID)
-    fun getPerson(@PathVariable id: Long): PersonDto =
-        personRepository.findById(id).orElseThrow { ResourceNotFoundException("Person with id $id not found") }.toDto()
-
     @PostMapping(ApiPersons.BASE_PATH)
     fun createPerson(@RequestBody dto: PersonDto): PersonDto =
         personRepository.save(dto.toModel().apply { id = null }).toDto()
+
+    @GetMapping(ApiPersons.ID)
+    fun getPerson(@PathVariable id: Long): PersonDto =
+        personRepository.findById(id).orElseThrow { ResourceNotFoundException("Person with id $id not found") }.toDto()
 
     @PutMapping(ApiPersons.ID)
     fun putPerson(@PathVariable id: Long, @RequestBody changes: PersonDto): PersonDto {

@@ -95,7 +95,7 @@ val EventAddParticipants = FC<AppAlertUsageProps> { props ->
         ModificationButtons {
             onSave = object : OnHandler {
                 override suspend fun handle(): OnResult {
-                    patchParticipants(eventId, allPersons.filter { it.included }.map { ParticipantPostDto(it.id) })
+                    patchParticipants(eventId, allPersons.filter { it.included }.map { it.id })
                     return OnResult(redirectUri, "Deltakerendringer lagret")
                 }
             }

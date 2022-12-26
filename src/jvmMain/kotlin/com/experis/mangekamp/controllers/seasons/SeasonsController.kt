@@ -37,6 +37,11 @@ class SeasonsController(
     @GetMapping(ApiSeasons.BASE_PATH)
     fun getSeasons(): List<SeasonDto> = seasonRepository.findAll().map { it.toDtoSimple() }
 
+    @PostMapping(ApiSeasons.BASE_PATH)
+    fun postSeason(@RequestBody seasonDto: SeasonPostDto): SeasonDto {
+        return seasonRepository.save(seasonDto.toModel()).let { it.toDto(it.events) }
+    }
+
     @GetMapping(ApiSeasons.ID)
     fun getSeason(@PathVariable id: Long, @RequestParam excludeEvents: Boolean = false): SeasonDto {
         val startTime = System.currentTimeMillis()
@@ -67,9 +72,9 @@ class SeasonsController(
         return output
     }
 
-    @PostMapping(ApiSeasons.BASE_PATH)
-    fun postSeason(@RequestBody seasonDto: SeasonPostDto): SeasonDto {
-        return seasonRepository.save(seasonDto.toModel()).let { it.toDto(it.events) }
+    @DeleteMapping(ApiSeasons.ID)
+    fun deleteSeason(@PathVariable id: Long) {
+        seasonRepository.deleteById(id)
     }
 
     @PatchMapping(ApiSeasons.ID)
@@ -93,10 +98,5 @@ class SeasonsController(
             ?: throw ResourceNotFoundException("Category with id ${event.categoryId} not found")
         val eventToSave = event.toModel { category }.apply { this.season = season }
         return eventRepository.save(eventToSave).toDto()
-    }
-
-    @DeleteMapping(ApiSeasons.ID)
-    fun deleteSeason(@PathVariable id: Long) {
-        seasonRepository.deleteById(id)
     }
 }

@@ -24,8 +24,20 @@ suspend fun getEvent(id: Long): EventDto {
     }
 }
 
-suspend fun patchParticipants(id: Long, participants: List<ParticipantPostDto>): EventDto {
+suspend fun patchParticipants(id: Long, participants: List<Long>) {
     val response = window.fetch(ApiEvents.ID_PARTICIPANTS.replacePathVariables(id), RequestInit(
+        method = "PATCH",
+        body = Json.encodeToJsonElement(participants),
+        headers = Headers().apply { append("Content-Type", "application/json;charset=UTF-8") }
+    )).await()
+
+    if (!response.ok) {
+        throw Exception("Oh no")
+    }
+}
+
+suspend fun patchParticipantsResults(id: Long, participants: List<ParticipantPostDto>): EventDto {
+    val response = window.fetch(ApiEvents.ID_PARTICIPANTS_RESULTS.replacePathVariables(id), RequestInit(
         method = "PATCH",
         body = Json.encodeToJsonElement(participants),
         headers = Headers().apply { append("Content-Type", "application/json;charset=UTF-8") }

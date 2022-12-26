@@ -297,7 +297,7 @@ val EventEditResults = FC<AppAlertUsageProps> { props ->
         ModificationButtons {
             onSave = object : OnHandler {
                 override suspend fun handle(): OnResult {
-                    patchParticipants(eventId, (men + women).map {
+                    patchParticipantsResults(eventId, (men + women).map {
                         ParticipantPostDto(
                             personId = it.personId,
                             rank = it.rank,

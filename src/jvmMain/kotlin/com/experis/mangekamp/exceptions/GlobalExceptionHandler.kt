@@ -1,8 +1,6 @@
 package com.experis.mangekamp.exceptions
 
 import javax.servlet.http.HttpServletRequest
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -10,8 +8,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class GlobalExceptionHandler {
-    private val logger: Logger = LoggerFactory.getLogger(GlobalExceptionHandler::class.java)
-
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler(ResourceNotFoundException::class, InvalidPropertyException::class)
     fun handleResourceNotFoundException(request: HttpServletRequest?, exception: Exception): GenericExceptionResponse {

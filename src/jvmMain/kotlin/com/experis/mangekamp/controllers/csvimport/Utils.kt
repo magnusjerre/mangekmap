@@ -6,17 +6,12 @@ import com.experis.mangekamp.models.Person
 import java.lang.Exception
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import org.springframework.web.client.HttpServerErrorException.InternalServerError
 
 
 fun List<String>.mapPersons(): List<Person> {
-    val headers = first().toPersonHeadersIndex()
+    val headers = first().mapHeadersToIndex()
     return subList(1, size).map { it.toPerson(headers) }
 }
-
-private fun String.toPersonHeadersIndex(): Map<String, Int> = split(";")
-    .mapIndexed { index, header -> header to index }
-    .toMap()
 
 private fun String.toPerson(headersMap: Map<String, Int>): Person {
     val columns = split(";")
@@ -28,12 +23,12 @@ private fun String.toPerson(headersMap: Map<String, Int>): Person {
     )
 }
 
-private fun String.mapEventHeaders(): Map<String, Int> = split(";")
+private fun String.mapHeadersToIndex(): Map<String, Int> = split(";")
     .mapIndexed { index, header -> header to index }
     .toMap()
 
 fun List<String>.mapSeasonName(): String {
-    val headers = first().mapEventHeaders()
+    val headers = first().mapHeadersToIndex()
     return this[1].split(";")[headers["Sesong"]!!]
 }
 
@@ -56,7 +51,7 @@ fun String.mapEventParticipant(headers: Map<String, Int>): EventCsv = split(";")
 }
 
 fun List<String>.mapEvents(): Map<String, List<EventCsv>> {
-    val headers = first().mapEventHeaders()
+    val headers = first().mapHeadersToIndex()
     return subList(1, size).map { it.mapEventParticipant(headers) }.groupBy { it.eventName }
 }
 
