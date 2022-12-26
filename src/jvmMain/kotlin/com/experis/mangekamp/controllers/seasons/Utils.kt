@@ -3,7 +3,7 @@ package com.experis.mangekamp.controllers.seasons
 import com.experis.mangekamp.controllers.categories.toDto
 import com.experis.mangekamp.controllers.persons.toDto
 import com.experis.mangekamp.logic.SeasonParticipant
-import com.experis.mangekamp.logic.SeasonSimplifiedEvent
+import com.experis.mangekamp.logic.EventParticipation
 import com.experis.mangekamp.logic.calculateSeason
 import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Gender
@@ -75,10 +75,10 @@ fun SeasonParticipant.toDto(): SeasonParticipantDto = SeasonParticipantDto(
     seasonPoints = seasonPoints,
     seasonPenaltyPoints = seasonPenaltyPoints?.let { SeasonPenaltyPointsDto(it.pointsPerMissingEvent, it.numberOfMissingEvents) },
     isMangekjemper = isMangekjemper,
-    results = this.events.map(SeasonSimplifiedEvent::toDto)
+    results = this.eventParticipations.map(EventParticipation::toDto)
 )
 
-fun SeasonSimplifiedEvent.toDto(): EventResultDto = EventResultDto(
+fun EventParticipation.toDto(): EventResultDto = EventResultDto(
     eventId = eventId,
     seasonId = seasonId,
     actualRank = actualRank,
