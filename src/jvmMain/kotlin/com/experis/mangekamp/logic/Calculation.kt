@@ -4,7 +4,7 @@ import com.experis.mangekamp.models.Category
 import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Gender
 import java.lang.Integer.max
-import java.lang.Integer.min
+import kotlin.Comparable as Comparable1
 
 fun List<Event>.calculateSeason(
     seasonId: Long,
@@ -229,72 +229,19 @@ fun SeasonParticipant.calculateSeasonPoints(
 }
 
 fun List<SeasonParticipant>.calculateSeasonRank(seasonId: Long, expectedMangekjemperEvents: Int = 8) {
-    // First pass, will later need to recalculate between those with same ranks
-    val sortedSeasonParticipants = sortedBy {
-        recalculateSeasonScore(it, seasonId, expectedMangekjemperEvents)
-    }
+    val sorted = sortedWithMultiple(
+        mangekjemperStatusOrEventCountComparator(seasonId, expectedMangekjemperEvents),
+        seasonPointsComparator,
+        ranksComparator
+    ).makeFlat()
     var rank = 1
-    var previousRank = 1
-    var previousScore = 0
-    for (seasonParticipant in sortedSeasonParticipants) {
-        val recalculatedScore = recalculateSeasonScore(seasonParticipant, seasonId, expectedMangekjemperEvents)
-        if (recalculatedScore == previousScore) {
-            seasonParticipant.seasonRank = previousRank
-        } else {
-            seasonParticipant.seasonRank = rank
-            previousRank = rank
-            previousScore = recalculatedScore
-        }
+    var prevElement: Sorted<SeasonParticipant>? = null
+    for (seasonParticipant in sorted) {
+        seasonParticipant.obj.seasonRank = if ((prevElement?.order ?: -1) == seasonParticipant.order) prevElement!!.obj.seasonRank else rank
+        prevElement = seasonParticipant
         rank++
     }
-
-    // Recalculate internally between tied participants
-    val tiedParticipants = sortedSeasonParticipants.groupBy { it.seasonRank }.filter { it.value.count() > 1 }
-    for (tiedParticipantsEntry in tiedParticipants) {
-        val rankings = tiedParticipantsEntry.value.map {it.personId to it.countRankings() }.toMap()
-        val sortable = tiedParticipantsEntry.value.toMutableList()
-        sortable.sortWith { a, b ->
-            val aRankCount = rankings[a.personId]!!.toMutableList()
-            val bRankCount = rankings[b.personId]!!.toMutableList()
-            while (aRankCount.isNotEmpty() && bRankCount.isNotEmpty()) {
-                val aRank = aRankCount.removeFirst()
-                val bRank = bRankCount.removeFirst()
-                if (aRank.first < bRank.first) return@sortWith -1
-                if (aRank.first > bRank.first) return@sortWith 1
-                if (aRank.second != bRank.second) {
-                    // Using minus here since we want the one with the most occurrences to come first
-                    return@sortWith -aRank.second.compareTo(bRank.second)
-                }
-            }
-
-            if (aRankCount.isEmpty() && bRankCount.isEmpty()) return@sortWith 0
-            else if (aRankCount.isEmpty()) return@sortWith 1
-            else return@sortWith -1
-        }
-
-        var nextRank = sortable.first().seasonRank + 1
-        var previousSeasonParticipant = sortable.first()
-        for (seasonParticipant in sortable.subList(1, sortable.size)) {
-            if (rankings[seasonParticipant.personId] == rankings[previousSeasonParticipant.personId]) {
-                seasonParticipant.seasonRank = previousSeasonParticipant.seasonRank
-            } else {
-                seasonParticipant.seasonRank = nextRank
-            }
-            previousSeasonParticipant = seasonParticipant
-            nextRank++
-        }
-    }
 }
-
-private fun recalculateSeasonScore(it: SeasonParticipant, seasonId: Long, expectedMangekjemperEvents: Int) =
-    if (it.isMangekjemper && it.mainSeasonId() == seasonId) {
-        it.seasonPoints
-    } else {
-        1000 + (expectedMangekjemperEvents - min(
-            it.events.count { it.seasonId == seasonId },
-            expectedMangekjemperEvents
-        )) * 1000 + it.seasonPoints
-    }
 
 private fun SeasonParticipant.countRankings(): List<Pair<Int, Int>> =
     events.mapNotNull { it.mangekjemperRank ?: it.actualRank }.groupBy { it }.mapValues { it.value.count() }.toList()
@@ -303,10 +250,6 @@ private fun SeasonParticipant.countRankings(): List<Pair<Int, Int>> =
 
 fun List<SeasonSimplifiedEvent>.isMangekjemper(mangekjemerEventsRequirement: Int = 8, categoryTypes: Int = 3) =
     count() >= mangekjemerEventsRequirement && map { it.category.name }.distinct().count() == categoryTypes
-
-fun <T> List<T>.isMangekjemper(mangekjemperEventsRequirement: Int = 8, categoryTypes: Int = 3, categoryExtractor: (T) -> Any?): Boolean {
-    return count() >= mangekjemperEventsRequirement && map { categoryExtractor(it) }.distinct().count() >= categoryTypes
-}
 
 data class SeasonParticipant(
     val personId: Long,
@@ -317,11 +260,18 @@ data class SeasonParticipant(
     val events: List<SeasonSimplifiedEvent>,
     var seasonPenaltyPoints: SeasonPenaltyPoints? = null,
     var isMangekjemper: Boolean = false
-) : Comparable<SeasonParticipant> {
+) : Comparable1<SeasonParticipant> {
     override fun compareTo(other: SeasonParticipant): Int = seasonRank.compareTo(other.seasonRank)
     override fun toString(): String =
         "${SeasonParticipant::class.qualifiedName}(personId=$personId, personName=\"$personName\")"
 
+    private var rankCount: RankCounts? = null
+    fun getRankCounts(): RankCounts {
+        if (rankCount == null) {
+            rankCount = countRankingsV2()
+        }
+        return rankCount!!
+    }
     fun mainSeasonId() = events.groupBy { it.seasonId }.maxByOrNull { it.value.count() }?.key ?: -1
 }
 
@@ -352,4 +302,110 @@ data class SeasonPenaltyPoints(
 
 enum class PointsReason {
     NOT_INCLUDED, NOT_MANGEKJEMPER, MANGEKJEMPER, MANGEKJEMPER_TOO_MANY_OF_SAME, OTHER_REGION_NOT_MANGEKJEMPER, OTHER_REGION_MANGEKJEMPER, OTHER_REGION_NOT_INCLUDED
+}
+
+class Sorted<T>(val order: Int, val obj: T)
+
+fun <T> List<T>.sortedWithMultiple(vararg  comparators: Comparator<T>): List<List<Sorted<T>>> {
+    val firstSort = this.sortedWith(comparators.first())
+    var listlist: MutableList<MutableList<T>> = firstSort.splitInto(comparators.first())
+
+    for (comparator in comparators) {
+        if (comparator == comparators.first()) continue
+        listlist = listlist.map {
+            if (it.count() == 1) {
+                mutableListOf( it)
+            } else {
+                val tempSorted = it.sortedWith(comparator)
+                val tempSplit = tempSorted.splitInto(comparator)
+                tempSplit
+            }
+        }.flatten().toMutableList()
+    }
+    var order = 1
+    return listlist.map {
+        val oldOrder = order++
+        if (it.count() == 1) listOf(Sorted(oldOrder, it.first()))
+        else
+            it.map { e -> Sorted(oldOrder, e) }
+
+    }
+}
+
+fun <T> List<List<Sorted<T>>>.makeFlat(): List<Sorted<T>> = flatten()
+
+fun <T> List<T>.splitInto(comparator: Comparator<T>): MutableList<MutableList<T>> {
+    if (this.isEmpty()) return mutableListOf()
+    var prev = this.first()
+    var listlist = mutableListOf(mutableListOf(prev))
+    var fIndex = 1
+    while (fIndex < this.count()) {
+        val current = this[fIndex]
+        if (comparator.compare(prev, current) == 0) {
+            listlist.last().add(current)
+        } else {
+            listlist.add(mutableListOf(current))
+        }
+        prev = current
+        fIndex++
+    }
+    return listlist
+}
+
+val mangekjemperStatusOrEventCountComparator: (Long, Int) -> Comparator<SeasonParticipant> = { seasonId, expectedMangekjemperRequirement ->
+    Comparator { o1, o2 ->
+        if (o1 == null && o2 == null) return@Comparator 0
+        if (o1 == null) return@Comparator 1
+        if (o2 == null) return@Comparator -1
+        val o1RelevantEvents = o1.events.filter { it.seasonId == seasonId }
+        val o1IsMangekjemperInThisSeasonUsingOnlySeasonevents = o1.isMangekjemper && o1RelevantEvents.isMangekjemper(expectedMangekjemperRequirement)
+        val o2RelevantEvents = o2.events.filter { it.seasonId == seasonId }
+        val o2IsMangekjemperInThisSeasonUsingOnlySeasonEvents = o2.isMangekjemper && o2RelevantEvents.isMangekjemper(expectedMangekjemperRequirement)
+        if (o1IsMangekjemperInThisSeasonUsingOnlySeasonevents &&
+                o2IsMangekjemperInThisSeasonUsingOnlySeasonEvents) return@Comparator 0
+        if (o1IsMangekjemperInThisSeasonUsingOnlySeasonevents &&
+            !o2IsMangekjemperInThisSeasonUsingOnlySeasonEvents) return@Comparator -1
+        if (!o1IsMangekjemperInThisSeasonUsingOnlySeasonevents &&
+                o2IsMangekjemperInThisSeasonUsingOnlySeasonEvents) return@Comparator 1
+
+        -o1RelevantEvents.count().compareTo(o2RelevantEvents.count())
+    }
+}
+
+val seasonPointsComparator = Comparator<SeasonParticipant> { o1, o2 ->
+    if (o1 == null && o2 == null) return@Comparator 0
+    if (o1 == null) return@Comparator 1
+    if (o2 == null) return@Comparator -1
+    o1.seasonPoints.compareTo(o2.seasonPoints)
+}
+
+val ranksComparator = Comparator<SeasonParticipant> { o1, o2 ->
+    if (o1 == null && o2 == null) return@Comparator 0
+    if (o1 == null) return@Comparator 1
+    if (o2 == null) return@Comparator -1
+    o1.getRankCounts().compareTo(o2.getRankCounts())
+}
+
+fun SeasonParticipant.countRankingsV2(): RankCounts = RankCounts(this.countRankings().map { RankCount(it.first, it.second) })
+data class RankCount(val rank: Int, val count: Int): Comparable1<RankCount> {
+    override fun compareTo(other: RankCount): Int {
+        if (rank < other.rank) return -1
+        if (rank > other.rank) return 1
+        return -count.compareTo(other.count)
+    }
+}
+class RankCounts(rankCounts: Collection<RankCount>) : Comparable1<RankCounts> {
+    val rankCounts: List<RankCount> = rankCounts.toList().sorted()
+    override fun compareTo(other: RankCounts): Int {
+        val myRankCounts = if (rankCounts.size < other.rankCounts.size) rankCounts + RankCount(
+            rank = other.rankCounts.last().rank + 1,
+            count = 0
+        ) else rankCounts
+        for ((index, rankCount) in myRankCounts.withIndex()) {
+            val otherRankCount = other.rankCounts.getOrNull(index) ?: RankCount(rankCount.rank + 1, 0)
+            val compareResult = rankCount.compareTo(otherRankCount)
+            if (compareResult != 0) return compareResult
+        }
+        return 0
+    }
 }

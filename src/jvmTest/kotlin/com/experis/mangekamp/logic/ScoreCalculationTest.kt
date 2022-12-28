@@ -311,7 +311,10 @@ class ScoreCalculationTest {
                     events[1].copy(actualRank = 1),
                     events[2].copy(actualRank = 2),
                     events[3].copy(actualRank = 2),
-                    events[4].copy(actualRank = 5),
+                    events[4].copy(actualRank = 7),
+                    events[5].copy(actualRank = 3),
+                    events[6].copy(actualRank = 7),
+                    events[7].copy(actualRank = 7),
                 ),
                 isMangekjemper = true
             ),
@@ -327,6 +330,9 @@ class ScoreCalculationTest {
                     events[3].copy(actualRank = 1),
                     events[4].copy(actualRank = 2),
                     events[6].copy(actualRank = 3),
+                    events[1].copy(actualRank = 5),
+                    events[5].copy(actualRank = 5),
+                    events[7].copy(actualRank = 5),
                 ),
                 isMangekjemper = true
             ),
@@ -336,7 +342,16 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 1,
                 seasonRank = 0,
-                events = events.subList(0, 8),
+                events = listOf(
+                    events[0].copy(actualRank = 3),
+                    events[1].copy(actualRank = 1),
+                    events[2].copy(actualRank = 3),
+                    events[3].copy(actualRank = 3),
+                    events[4].copy(actualRank = 1),
+                    events[5].copy(actualRank = 1),
+                    events[6].copy(actualRank = 1),
+                    events[7].copy(actualRank = 1),
+                ),
                 isMangekjemper = true
             ),
             SeasonParticipant(
@@ -345,7 +360,16 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 12,
                 seasonRank = 0,
-                events = events.subList(0, 8),
+                events = listOf(
+                    events[0].copy(actualRank = 2),
+                    events[1].copy(actualRank = 2),
+                    events[2].copy(actualRank = 2),
+                    events[3].copy(actualRank = 2),
+                    events[4].copy(actualRank = 2),
+                    events[5].copy(actualRank = 2),
+                    events[6].copy(actualRank = 2),
+                    events[7].copy(actualRank = 2),
+                ),
                 isMangekjemper = true
             ),
             SeasonParticipant(
