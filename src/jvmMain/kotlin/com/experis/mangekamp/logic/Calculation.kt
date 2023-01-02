@@ -107,124 +107,101 @@ fun List<SeasonParticipant>.calculateMangekjemperRankings(seasonId: Long, mangek
 // Returns a list with pairs of Category and utilized SeasonSimplifiedEvents
 fun SeasonParticipant.calculateSeasonPoints(
     seasonId: Long,
-    penaltyPoints: (Gender) -> Int = { if (it == Gender.MALE) 16 else 8 },
+    penaltyPoints: (Gender) -> Int = { if (it == com.experis.mangekamp.models.Gender.MALE) 16 else 8 },
     expectedMangekjemperEvents: Int = 8,
     mangekjemperRequirement: (SeasonParticipant) -> Boolean,
     totalMangekjempere: Int = 1,
 ): List<Pair<Category?, SeasonSimplifiedEvent>> {
-    if (mangekjemperRequirement(this)) {
-        val physicalConditionCategory = events.first { it.category.name == "Kondisjon" }.category
-        val ballCategory = events.first { it.category.name == "Balløvelser" }.category
-        val techniqueCategory = events.first { it.category.name == "Teknikk" }.category
+    val pFiltered = events.filter { it.category.name == "Kondisjon" }
+    val physicalConditionEvents = pFiltered
+        .sortedBy { if (it.seasonId == seasonId) it.mangekjemperRank ?: it.actualRank else totalMangekjempere }
+        .toMutableList()
+    val bFiltered = events
+        .filter { it.category.name == "Balløvelser" }
+    val ballEvents = bFiltered
+        .sortedBy { if (it.seasonId == seasonId) it.mangekjemperRank ?: it.actualRank else totalMangekjempere }
+        .toMutableList()
+    val tFiltered = events
+        .filter { it.category.name == "Teknikk" }
+    val techniqueEvents = tFiltered
+        .sortedBy { if (it.seasonId == seasonId) it.mangekjemperRank ?: it.actualRank else totalMangekjempere }
+        .toMutableList()
 
-        val physicalConditionEventRankings =
-            events.asSequence()
-                .filter { it.category.name == "Kondisjon" }
-                .sortedBy { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
-                .toMutableList()
-        physicalConditionEventRankings.forEachIndexed { index, event ->
-            if (index < 3) {
-                event.eventPoints = if (event.seasonId == seasonId) event.mangekjemperRank!! else totalMangekjempere
-                event.eventPointsReason = if (event.seasonId == seasonId) PointsReason.MANGEKJEMPER else PointsReason.OTHER_REGION_MANGEKJEMPER
-            } else {
-                event.eventPoints = max(penaltyPoints(this.gender), event.mangekjemperRank ?: event.actualRank!!)
-                event.eventPointsReason = PointsReason.MANGEKJEMPER_TOO_MANY_OF_SAME
-            }
+    physicalConditionEvents.forEachIndexed { index, event ->
+        val values = event.calculateEventPoints(mangekjemperRequirement(this), seasonId,
+            {penaltyPoints(gender)}, index, totalMangekjempere)
+        event.eventPoints = values.first
+        event.eventPointsReason = values.second
+    }
+
+    ballEvents.forEachIndexed { index, event ->
+        val values = event.calculateEventPoints(mangekjemperRequirement(this), seasonId,
+            {penaltyPoints(gender)}, index, totalMangekjempere)
+        event.eventPoints = values.first
+        event.eventPointsReason = values.second
+    }
+
+    techniqueEvents.forEachIndexed { index, event ->
+        val values = event.calculateEventPoints(mangekjemperRequirement(this), seasonId,
+            {penaltyPoints(gender)}, 0, totalMangekjempere)
+        event.eventPoints = values.first
+        event.eventPointsReason = values.second
+    }
+
+    val output = mutableListOf<Pair<Category?, SeasonSimplifiedEvent>>()
+
+    if (techniqueEvents.isNotEmpty()) {
+        output.add(techniqueEvents.first().category to techniqueEvents.removeFirst())
+    }
+    if (physicalConditionEvents.isNotEmpty()) {
+        output.add(physicalConditionEvents.first().category to physicalConditionEvents.removeFirst())
+    }
+    if (ballEvents.isNotEmpty()) {
+        output.add(ballEvents.first().category to ballEvents.removeFirst())
+    }
+
+    while (output.count() < expectedMangekjemperEvents && (physicalConditionEvents.isNotEmpty() || ballEvents.isNotEmpty() || techniqueEvents.isNotEmpty())) {
+        val p = physicalConditionEvents.firstOrNull()?.eventPoints ?: Int.MAX_VALUE
+        val b = ballEvents.firstOrNull()?.eventPoints ?: Int.MAX_VALUE
+        val t = techniqueEvents.firstOrNull()?.eventPoints ?: Int.MAX_VALUE
+
+        if (p < b && p < t) {
+            output.add(physicalConditionEvents.first().category to physicalConditionEvents.removeFirst())
+        } else if (b < t) {
+            output.add(ballEvents.first().category to ballEvents.removeFirst())
+        } else {
+            output.add(techniqueEvents.first().category to techniqueEvents.removeFirst())
         }
-        val ballEventsRankings = events.asSequence()
-            .filter { it.category.name == "Balløvelser" }
-            .sortedBy { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
-            .toMutableList()
-        ballEventsRankings.forEachIndexed { index, event ->
-            if (index < 3) {
-                event.eventPoints = if (event.seasonId == seasonId) event.mangekjemperRank!! else totalMangekjempere
-                event.eventPointsReason = if (event.seasonId == seasonId) PointsReason.MANGEKJEMPER else PointsReason.OTHER_REGION_MANGEKJEMPER
-            } else {
-                event.eventPoints = max(penaltyPoints(this.gender), event.mangekjemperRank ?: event.actualRank!!)
-                event.eventPointsReason = PointsReason.MANGEKJEMPER_TOO_MANY_OF_SAME
-            }
+    }
+
+    (physicalConditionEvents + ballEvents + techniqueEvents).forEach {
+        it.eventPointsReason = if (it.seasonId == seasonId) PointsReason.NOT_INCLUDED else PointsReason.OTHER_REGION_NOT_INCLUDED
+    }
+
+    if (output.count() < expectedMangekjemperEvents) {
+        this.seasonPenaltyPoints = SeasonPenaltyPoints(expectedMangekjemperEvents, expectedMangekjemperEvents - output.count())
+    }
+
+    seasonPoints = output.filterNot { it.second.eventPointsReason == PointsReason.NOT_INCLUDED }.sumOf { it.second.eventPoints } + (seasonPenaltyPoints?.penaltyPoints ?: 0)
+    return output
+}
+
+fun SeasonSimplifiedEvent.calculateEventPoints(
+    isMangekjemper: Boolean,
+    wantedSeasonId: Long,
+    penaltyPoints: () -> Int,
+    index: Int,
+    totalMangekjempere: Int): Pair<Int, PointsReason> {
+    return if (isMangekjemper) {
+        if (index < 3) {
+            if (seasonId == wantedSeasonId) Pair(mangekjemperRank!!, PointsReason.MANGEKJEMPER)
+            else Pair(totalMangekjempere, PointsReason.OTHER_REGION_MANGEKJEMPER)
+        } else {
+            Pair(max(penaltyPoints(), mangekjemperRank ?: actualRank!!), PointsReason.MANGEKJEMPER_TOO_MANY_OF_SAME)
         }
-        val techniqueEventsRankings =
-            events.filter { it.category.name == "Teknikk" }
-                .sortedBy { if (it.seasonId == seasonId) it.mangekjemperRank!! else totalMangekjempere }
-                .toMutableList()
-        techniqueEventsRankings.forEachIndexed { index, event ->
-            event.eventPoints = if (event.seasonId == seasonId) event.mangekjemperRank!! else totalMangekjempere
-            event.eventPointsReason = if (event.seasonId == seasonId) PointsReason.MANGEKJEMPER else PointsReason.OTHER_REGION_MANGEKJEMPER
-        }
-
-        val output = mutableListOf<Pair<Category?, SeasonSimplifiedEvent>>()
-
-        output.add(techniqueCategory to techniqueEventsRankings.removeFirst())
-        output.add(physicalConditionCategory to physicalConditionEventRankings.removeFirst())
-        output.add(ballCategory to ballEventsRankings.removeFirst())
-
-        while (output.count() < expectedMangekjemperEvents && (physicalConditionEventRankings.isNotEmpty() || ballEventsRankings.isNotEmpty() || techniqueEventsRankings.isNotEmpty())) {
-            val p = physicalConditionEventRankings.firstOrNull()?.eventPoints ?: Int.MAX_VALUE
-            val b = ballEventsRankings.firstOrNull()?.eventPoints ?: Int.MAX_VALUE
-            val t = techniqueEventsRankings.firstOrNull()?.eventPoints ?: Int.MAX_VALUE
-
-            if (p < b && p < t) {
-                output.add(physicalConditionCategory to physicalConditionEventRankings.removeFirst())
-            } else if (b < t) {
-                output.add(ballCategory to ballEventsRankings.removeFirst())
-            } else {
-                output.add(techniqueCategory to techniqueEventsRankings.removeFirst())
-            }
-        }
-
-        (physicalConditionEventRankings + ballEventsRankings + techniqueEventsRankings).forEach {
-            it.eventPointsReason = if (it.seasonId == seasonId) PointsReason.NOT_INCLUDED else PointsReason.OTHER_REGION_NOT_INCLUDED
-        }
-        seasonPoints = output.filterNot { it.second.eventPointsReason == PointsReason.NOT_INCLUDED }.sumOf { it.second.eventPoints }
-        return output
     } else {
-        events.forEach {
-            it.eventPoints = if (it.seasonId == seasonId) it.actualRank!! else penaltyPoints(gender)
-            it.eventPointsReason = if (it.seasonId == seasonId) PointsReason.NOT_MANGEKJEMPER else PointsReason.OTHER_REGION_NOT_MANGEKJEMPER
-        }
-        val rankingsSortedNew = events.sortedBy { it.eventPoints }
-
-//        val output = rankingsSortedNew.subList(0, min(expectedMangekjemperEvents, rankingsSortedNew.count())).map { it.category to it }
-        val output = rankingsSortedNew.map { it.category to it }
-        val techniqueEvents = output.filter { it.first.name == "Teknikk" }.toMutableList()
-        val ballEvents = output.filter { it.first.name == "Balløvelser" }.toMutableList()
-        val physicalConditionEvents = output.filter { it.first.name == "Kondisjon" }.toMutableList()
-
-        val actualOutput = mutableListOf<Pair<Category, SeasonSimplifiedEvent>>()
-
-        if (techniqueEvents.isNotEmpty())
-            actualOutput.add(techniqueEvents.removeFirst())
-        if (ballEvents.isNotEmpty())
-            actualOutput.add(ballEvents.removeFirst())
-        if (physicalConditionEvents.isNotEmpty())
-            actualOutput.add(physicalConditionEvents.removeFirst())
-
-        while (actualOutput.count() < expectedMangekjemperEvents && (physicalConditionEvents.isNotEmpty() || techniqueEvents.isNotEmpty() || ballEvents.isNotEmpty())) {
-            val p = physicalConditionEvents.firstOrNull()?.second?.eventPoints ?: Int.MAX_VALUE
-            val b = ballEvents.firstOrNull()?.second?.eventPoints ?: Int.MAX_VALUE
-            val t = techniqueEvents.firstOrNull()?.second?.eventPoints ?: Int.MAX_VALUE
-
-            if (p < b && p < t) {
-                actualOutput.add(physicalConditionEvents.removeFirst())
-            } else if (b < t) {
-                actualOutput.add(ballEvents.removeFirst())
-            } else {
-                actualOutput.add(techniqueEvents.removeFirst())
-            }
-        }
-
-        if (actualOutput.count() < expectedMangekjemperEvents) {
-            this.seasonPenaltyPoints = SeasonPenaltyPoints(expectedMangekjemperEvents, expectedMangekjemperEvents - actualOutput.count())
-        }
-
-        (physicalConditionEvents + techniqueEvents + ballEvents).forEach {
-            it.second.eventPoints = 0
-            it.second.eventPointsReason = PointsReason.NOT_INCLUDED
-        }
-
-        seasonPoints = actualOutput.sumOf { it.second.eventPoints } + (seasonPenaltyPoints?.penaltyPoints ?: 0)
-        return actualOutput
+        if (seasonId == wantedSeasonId) Pair(actualRank!!, PointsReason.NOT_MANGEKJEMPER)
+        else Pair(penaltyPoints(), PointsReason.OTHER_REGION_NOT_MANGEKJEMPER)
     }
 }
 
