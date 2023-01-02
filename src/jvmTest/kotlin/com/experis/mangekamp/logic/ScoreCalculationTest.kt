@@ -119,7 +119,7 @@ class ScoreCalculationTest {
             teknikk to 12,
             teknikk to 15,
         ).toSeasonParticipant()
-        val seasonPointsUsed = participant.calculateSeasonPoints(1, penaltyPoints, mangekjemperRequirement = simpleMangekjemperRequirement).map { it.first to it.second.eventPoints }.doSort()
+        val seasonPointsUsed = participant.calculateSeasonPoints(1, penaltyPoints).map { it.first to it.second.eventPoints }.doSort()
         seasonPointsUsed.count() shouldBe 8
         seasonPointsUsed shouldBe listOf(
             kondisjon to 1,
@@ -178,7 +178,7 @@ class ScoreCalculationTest {
             teknikk to 5,
         ).toSeasonParticipant()
         val seasonPointsUsed =
-            participant.calculateSeasonPoints(1, penaltyPoints, mangekjemperRequirement = simpleMangekjemperRequirement)
+            participant.calculateSeasonPoints(1, penaltyPoints)
                 .map { it.first to it.second.eventPoints }.doSort()
         seasonPointsUsed.shouldBe(
             listOf(
@@ -208,7 +208,7 @@ class ScoreCalculationTest {
             ball to 14,
             teknikk to 5,
         ).toSeasonParticipant()
-        val seasonPointsUsed = participant.calculateSeasonPoints(1, penaltyPoints, mangekjemperRequirement = simpleMangekjemperRequirement).map { it.first to it.second.eventPoints }.doSort()
+        val seasonPointsUsed = participant.calculateSeasonPoints(1, penaltyPoints).map { it.first to it.second.eventPoints }.doSort()
         seasonPointsUsed.shouldBe(
             listOf(
                 kondisjon to 1,
@@ -232,7 +232,7 @@ class ScoreCalculationTest {
             kondisjon to 1
         ).toSeasonParticipant(isMangekjemper = false)
         val seasonPointsUsed1 =
-            participant1Event.calculateSeasonPoints(1, penaltyPoints, expectedMangekjemperEvents = 8, mangekjemperRequirement = simpleMangekjemperRequirement).map { it.first to it.second.eventPoints }.doSort()
+            participant1Event.calculateSeasonPoints(1, penaltyPoints, expectedMangekjemperEvents = 8).map { it.first to it.second.eventPoints }.doSort()
         seasonPointsUsed1.shouldBe(listOf(kondisjon to 1))
         participant1Event.seasonPenaltyPoints shouldBe SeasonPenaltyPoints(pointsPerMissingEvent = 8, numberOfMissingEvents = 7)
         participant1Event.seasonPoints shouldBe 57
@@ -243,7 +243,7 @@ class ScoreCalculationTest {
             teknikk to 4,
         ).toSeasonParticipant(isMangekjemper = false) // Får feil her fordi det gjøres noe logikk rundt mangekjemper-verdien
         val seasonPointsUsed3 =
-            participant3Event.calculateSeasonPoints(1, penaltyPoints, expectedMangekjemperEvents = 8, mangekjemperRequirement = simpleMangekjemperRequirement).map { it.first to it.second.eventPoints }.doSort()
+            participant3Event.calculateSeasonPoints(1, penaltyPoints, expectedMangekjemperEvents = 8).map { it.first to it.second.eventPoints }.doSort()
         seasonPointsUsed3.shouldBe(
             listOf(
                 kondisjon to 1,
@@ -270,7 +270,7 @@ class ScoreCalculationTest {
             ball to 10
         ).toSeasonParticipant(isMangekjemper = false)
 
-        participant.calculateSeasonPoints(1, penaltyPoints, mangekjemperRequirement = simpleMangekjemperRequirement)
+        participant.calculateSeasonPoints(1, penaltyPoints)
 
         val excludedEvents = participant.events.filter { it.eventPointsReason == PointsReason.NOT_INCLUDED }
         excludedEvents.count() shouldBe 2
