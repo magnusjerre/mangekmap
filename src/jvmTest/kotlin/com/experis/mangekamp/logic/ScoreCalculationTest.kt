@@ -1,18 +1,11 @@
 package com.experis.mangekamp.logic
 
 import com.experis.mangekamp.models.Category
-import com.experis.mangekamp.models.Event
 import com.experis.mangekamp.models.Gender
-import com.experis.mangekamp.models.Participant
-import com.experis.mangekamp.models.ParticipantId
-import com.experis.mangekamp.models.Person
-import com.experis.mangekamp.models.Region
-import com.experis.mangekamp.models.Season
 import io.kotest.inspectors.shouldForAll
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import java.time.LocalDate
 import org.junit.jupiter.api.Test
 
 class ScoreCalculationTest {
