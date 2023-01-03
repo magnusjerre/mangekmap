@@ -16,7 +16,7 @@ class ScoreCalculationTest {
     // Mangekjemper-ranking
     @Test
     fun `Mangekjempere should receive a separate mangekjemper-rank recalculated based on the existing event-rank where all non-mangekjempere are omitted from the event`() {
-        val minigolf = SeasonSimplifiedEvent("Minigolf", ball, 1, 1, null, false, null)
+        val minigolf = EventParticipation("Minigolf", ball, 1, 1, null, false, null)
 
         val participants = listOf(
             minigolf.createParticipant(rank = 2, isMangekjemper = true, id = 1, name = "Donald Duck"),
@@ -33,10 +33,10 @@ class ScoreCalculationTest {
 
         participants.calculateMangekjemperRankings(1) { it.isMangekjemper }
 
-        participants.filterNot { it.isMangekjemper }.shouldForAll { it.events.first().mangekjemperRank shouldBe null }
+        participants.filterNot { it.isMangekjemper }.shouldForAll { it.eventParticipations.first().mangekjemperRank shouldBe null }
 
         val mangekjempere = participants.filter { it.isMangekjemper }
-        mangekjempere.shouldForAll { it.events.first().mangekjemperRank shouldNotBe null }
+        mangekjempere.shouldForAll { it.eventParticipations.first().mangekjemperRank shouldNotBe null }
         mangekjempere.count() shouldBe 7
         mangekjempere.getParticipantNamesForMangekjemperRank(1) shouldBe setOf("Donald Duck")
         mangekjempere.getParticipantNamesForMangekjemperRank(2) shouldBe setOf("Mikke Mus", "Langbein")
@@ -48,7 +48,7 @@ class ScoreCalculationTest {
 
     @Test
     fun `Mangekjempere team ranking should receive a separate mangekjemper-rank recalculated based on the existing event-rank where all non-mangekjempere are omitted from the event`() {
-        val minigolf = SeasonSimplifiedEvent("Minigolf", ball, 1, 1, null,  false,null, isTeamBased = true)
+        val minigolf = EventParticipation("Minigolf", ball, 1, 1, null,  false,null, isTeamBased = true)
 
         val participants = listOf(
             minigolf.createParticipant(rank = 2, teamNumber = 2, isMangekjemper = false, id = 1, name = "Donald Duck"),
@@ -64,10 +64,10 @@ class ScoreCalculationTest {
 
         participants.calculateMangekjemperRankings(1) { it.isMangekjemper }
 
-        participants.filterNot { it.isMangekjemper }.shouldForAll { it.events.first().mangekjemperRank shouldBe null }
+        participants.filterNot { it.isMangekjemper }.shouldForAll { it.eventParticipations.first().mangekjemperRank shouldBe null }
 
         val mangekjempere = participants.filter { it.isMangekjemper }
-        mangekjempere.shouldForAll { it.events.first().mangekjemperRank shouldNotBe null }
+        mangekjempere.shouldForAll { it.eventParticipations.first().mangekjemperRank shouldNotBe null }
         mangekjempere.count() shouldBe 5
         mangekjempere.getParticipantNamesForMangekjemperRank(1) shouldBe setOf("Fetter Anton", "Mikke Mus", "Langbein")
         mangekjempere.getParticipantNamesForMangekjemperRank(2) shouldBe setOf("Doffen")
@@ -75,9 +75,9 @@ class ScoreCalculationTest {
     }
 
     private fun List<SeasonParticipant>.getParticipantNamesForMangekjemperRank(rank: Int): Set<String> =
-        filter { it.events.first().mangekjemperRank == rank }.map { it.personName }.toSet()
+        filter { it.eventParticipations.first().mangekjemperRank == rank }.map { it.personName }.toSet()
 
-    private fun SeasonSimplifiedEvent.createParticipant(
+    private fun EventParticipation.createParticipant(
         id: Int,
         name: String,
         rank: Int,
@@ -91,7 +91,7 @@ class ScoreCalculationTest {
             gender = gender,
             seasonRank = 0,
             seasonPoints = 0,
-            events = listOf(this.copy(actualRank = rank, teamNumber = teamNumber)),
+            eventParticipations = listOf(this.copy(actualRank = rank, teamNumber = teamNumber)),
         ).apply {
             this.isMangekjemper = isMangekjemper
         }
@@ -146,8 +146,8 @@ class ScoreCalculationTest {
         seasonRank = 0,
         seasonPoints = 0,
         isMangekjemper = isMangekjemper,
-        events = this.mapIndexed { index, (category, rank) ->
-            SeasonSimplifiedEvent(
+        eventParticipations = this.mapIndexed { index, (category, rank) ->
+            EventParticipation(
                 eventName = "${category.name}-$index",
                 category = category,
                 eventId = (index + 1).toLong(),
@@ -265,32 +265,32 @@ class ScoreCalculationTest {
 
         participant.calculateSeasonPoints(1, penaltyPoints)
 
-        val excludedEvents = participant.events.filter { it.eventPointsReason == PointsReason.NOT_INCLUDED }
+        val excludedEvents = participant.eventParticipations.filter { it.eventPointsReason == PointsReason.NOT_INCLUDED }
         excludedEvents.count() shouldBe 2
         excludedEvents.map { it.actualRank }.toSet() shouldBe setOf(8, 9)
 
-        val includedEvents = participant.events.filterNot { it.eventPointsReason == PointsReason.NOT_INCLUDED }
+        val includedEvents = participant.eventParticipations.filterNot { it.eventPointsReason == PointsReason.NOT_INCLUDED }
         includedEvents.count() shouldBe 8
     }
 
     @Test
     fun `Should correctly set season rank for both mangekjempere and non-mangekjempere, placing mangekjempere on top, then sorted by the number of completed events and score`() {
         val events = listOf(
-            SeasonSimplifiedEvent("Minigolf", ball, 1, 1),
-            SeasonSimplifiedEvent("Orientering", kondisjon, 2, 1),
-            SeasonSimplifiedEvent("Crossfit", kondisjon, 3, 1),
-            SeasonSimplifiedEvent("Frisbeegolf", teknikk, 4, 1),
-            SeasonSimplifiedEvent("Roing", kondisjon, 5, 1),
-            SeasonSimplifiedEvent("Poker", teknikk, 6, 1),
-            SeasonSimplifiedEvent("E-sport", teknikk, 7, 1),
-            SeasonSimplifiedEvent("Ski med blink", kondisjon, 8, 1),
-            SeasonSimplifiedEvent("Padel", ball, 9, 1),
-            SeasonSimplifiedEvent("Tverrliggerkonk", ball, 10, 1),
-            SeasonSimplifiedEvent("Biptest", kondisjon, 11, 1),
-            SeasonSimplifiedEvent("Kontorstolres", teknikk, 12, 1),
-            SeasonSimplifiedEvent("Bowling", ball, 13, 1),
-            SeasonSimplifiedEvent("Color Line Challenge", teknikk, 14, 1),
-            SeasonSimplifiedEvent("Arkadespill", teknikk, 15, 1),
+            EventParticipation("Minigolf", ball, 1, 1),
+            EventParticipation("Orientering", kondisjon, 2, 1),
+            EventParticipation("Crossfit", kondisjon, 3, 1),
+            EventParticipation("Frisbeegolf", teknikk, 4, 1),
+            EventParticipation("Roing", kondisjon, 5, 1),
+            EventParticipation("Poker", teknikk, 6, 1),
+            EventParticipation("E-sport", teknikk, 7, 1),
+            EventParticipation("Ski med blink", kondisjon, 8, 1),
+            EventParticipation("Padel", ball, 9, 1),
+            EventParticipation("Tverrliggerkonk", ball, 10, 1),
+            EventParticipation("Biptest", kondisjon, 11, 1),
+            EventParticipation("Kontorstolres", teknikk, 12, 1),
+            EventParticipation("Bowling", ball, 13, 1),
+            EventParticipation("Color Line Challenge", teknikk, 14, 1),
+            EventParticipation("Arkadespill", teknikk, 15, 1),
         )
         val participants = listOf(
             SeasonParticipant(
@@ -299,7 +299,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 15,
                 seasonRank = 0,
-                events = listOf(
+                eventParticipations = listOf(
                     events[0].copy(actualRank = 1),
                     events[1].copy(actualRank = 1),
                     events[2].copy(actualRank = 2),
@@ -317,7 +317,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 15,
                 seasonRank = 0,
-                events = listOf(
+                eventParticipations = listOf(
                     events[0].copy(actualRank = 2),
                     events[2].copy(actualRank = 1),
                     events[3].copy(actualRank = 1),
@@ -335,7 +335,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 1,
                 seasonRank = 0,
-                events = listOf(
+                eventParticipations = listOf(
                     events[0].copy(actualRank = 3),
                     events[1].copy(actualRank = 1),
                     events[2].copy(actualRank = 3),
@@ -353,7 +353,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 12,
                 seasonRank = 0,
-                events = listOf(
+                eventParticipations = listOf(
                     events[0].copy(actualRank = 2),
                     events[1].copy(actualRank = 2),
                     events[2].copy(actualRank = 2),
@@ -371,7 +371,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 19,
                 seasonRank = 0,
-                events = events,
+                eventParticipations = events,
                 isMangekjemper = false
             ),
             SeasonParticipant(
@@ -380,7 +380,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 22,
                 seasonRank = 0,
-                events = events.subList(0, 3),
+                eventParticipations = events.subList(0, 3),
                 isMangekjemper = false
             ),
             SeasonParticipant(
@@ -389,7 +389,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 19,
                 seasonRank = 0,
-                events = events.subList(0, 5),
+                eventParticipations = events.subList(0, 5),
                 isMangekjemper = false
             ),
         )
@@ -407,11 +407,11 @@ class ScoreCalculationTest {
     @Test
     fun `Should correctly set season rank when multiple participants have the same points`() {
         val events = listOf(
-            SeasonSimplifiedEvent("Minigolf", ball, 1, 1),
-            SeasonSimplifiedEvent("Orientering", kondisjon, 2, 1),
-            SeasonSimplifiedEvent("Crossfit", kondisjon, 3, 1),
-            SeasonSimplifiedEvent("Frisbeegolf", teknikk, 4, 1),
-            SeasonSimplifiedEvent("Roing", kondisjon, 5, 1),
+            EventParticipation("Minigolf", ball, 1, 1),
+            EventParticipation("Orientering", kondisjon, 2, 1),
+            EventParticipation("Crossfit", kondisjon, 3, 1),
+            EventParticipation("Frisbeegolf", teknikk, 4, 1),
+            EventParticipation("Roing", kondisjon, 5, 1),
         )
         val participants = listOf(
             SeasonParticipant(
@@ -420,7 +420,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 11,
                 seasonRank = 0,
-                events = listOf(
+                eventParticipations = listOf(
                     events[0].copy(actualRank = 1),
                     events[1].copy(actualRank = 3),
                     events[2].copy(actualRank = 2),
@@ -435,7 +435,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 11,
                 seasonRank = 0,
-                events = listOf(
+                eventParticipations = listOf(
                     events[0].copy(actualRank = 2),
                     events[1].copy(actualRank = 1),
                     events[2].copy(actualRank = 3),
@@ -450,7 +450,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 11,
                 seasonRank = 0,
-                events = listOf(
+                eventParticipations = listOf(
                     events[0].copy(actualRank = 3),
                     events[1].copy(actualRank = 2),
                     events[2].copy(actualRank = 1),
@@ -465,7 +465,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 17,
                 seasonRank = 0,
-                events = listOf(
+                eventParticipations = listOf(
                     events[0].copy(actualRank = 4),
                     events[1].copy(actualRank = 4),
                     events[2].copy(actualRank = 4),
@@ -485,7 +485,7 @@ class ScoreCalculationTest {
 
     @Test
     fun `Should correctly calculate mangekjemper ranking when teams are tied`() {
-        val event = SeasonSimplifiedEvent("Tennis double", ball, 1, 1, isTeamBased = true)
+        val event = EventParticipation("Tennis double", ball, 1, 1, isTeamBased = true)
         val participants = listOf(
             SeasonParticipant(
                 1,
@@ -493,7 +493,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 11,
                 seasonRank = 0,
-                events = listOf(event.copy(actualRank = 1, teamNumber = 1)),
+                eventParticipations = listOf(event.copy(actualRank = 1, teamNumber = 1)),
                 isMangekjemper = true
             ),
             SeasonParticipant(
@@ -502,7 +502,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 11,
                 seasonRank = 0,
-                events = listOf(event.copy(actualRank = 1, teamNumber = 1)),
+                eventParticipations = listOf(event.copy(actualRank = 1, teamNumber = 1)),
                 isMangekjemper = true
             ),
             SeasonParticipant(
@@ -511,7 +511,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 11,
                 seasonRank = 0,
-                events = listOf(event.copy(actualRank = 1, teamNumber = 2)),
+                eventParticipations = listOf(event.copy(actualRank = 1, teamNumber = 2)),
                 isMangekjemper = true
             ),
             SeasonParticipant(
@@ -520,7 +520,7 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 17,
                 seasonRank = 0,
-                events = listOf(event.copy(actualRank = 1, teamNumber = 2)),
+                eventParticipations = listOf(event.copy(actualRank = 1, teamNumber = 2)),
                 isMangekjemper = true
             ),
             SeasonParticipant(
@@ -529,13 +529,13 @@ class ScoreCalculationTest {
                 gender = Gender.MALE,
                 seasonPoints = 17,
                 seasonRank = 0,
-                events = listOf(event.copy(actualRank = 2, teamNumber = 3)),
+                eventParticipations = listOf(event.copy(actualRank = 2, teamNumber = 3)),
                 isMangekjemper = true
             ),
         )
         participants.calculateMangekjemperRankings(1, simpleMangekjemperRequirement)
         val mangekjemperRanks = participants.map {
-            it.personName to it.events.first().mangekjemperRank
+            it.personName to it.eventParticipations.first().mangekjemperRank
         }
         mangekjemperRanks shouldContain ("Ole" to 1)
         mangekjemperRanks shouldContain ("Dole" to 1)

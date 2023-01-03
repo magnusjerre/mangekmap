@@ -75,7 +75,7 @@ class FinalScoreCalculation {
             seasonId = season.id!!,
             gender = Gender.MALE,
             expectedMangekjemperEvents = season.mangekjemperRequiredEvents.toInt()
-        ) { it.events.isMangekjemper(season.mangekjemperRequiredEvents.toInt())}
+        ) { it.eventParticipations.isMangekjemper(season.mangekjemperRequiredEvents.toInt())}
 
         val winner = result[0]
         winner.shouldHave(person = DONALD_DUCK, seasonRank = 1, seasonPoints = 10, mangekjemperStatus = true)
@@ -192,7 +192,7 @@ class FinalScoreCalculation {
             seasonId = season.id!!,
             gender = Gender.MALE,
             expectedMangekjemperEvents = season.mangekjemperRequiredEvents.toInt()
-        ) { it.events.isMangekjemper(season.mangekjemperRequiredEvents.toInt())}
+        ) { it.eventParticipations.isMangekjemper(season.mangekjemperRequiredEvents.toInt())}
         val winner = result[0]
         winner.shouldHave(person = DONALD_DUCK, seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
         winner.shouldHaveMangekjemperRanks(
@@ -314,7 +314,7 @@ class FinalScoreCalculation {
             seasonId = season.id!!,
             gender = Gender.MALE,
             expectedMangekjemperEvents = season.mangekjemperRequiredEvents.toInt()
-        ) { it.events.isMangekjemper(season.mangekjemperRequiredEvents.toInt())}
+        ) { it.eventParticipations.isMangekjemper(season.mangekjemperRequiredEvents.toInt())}
 
         val donaldMain = resultsMain.find { it.personName == DONALD_DUCK.name }!!
         donaldMain.shouldHave(person = DONALD_DUCK, seasonRank = 1, seasonPoints = 4, mangekjemperStatus = true)
@@ -372,7 +372,7 @@ class FinalScoreCalculation {
             gender = Gender.MALE,
             expectedMangekjemperEvents = seasonOtherRegion1.mangekjemperRequiredEvents.toInt()
         ) {
-            it.events.isMangekjemper(season.mangekjemperRequiredEvents.toInt())
+            it.eventParticipations.isMangekjemper(season.mangekjemperRequiredEvents.toInt())
         }
         resultsOther1.find { it.personName == DONALD_DUCK.name } shouldBe null
         val oleOther1 = resultsOther1.getParticipant(OLE)!!
@@ -394,7 +394,7 @@ class FinalScoreCalculation {
             gender = Gender.MALE,
             expectedMangekjemperEvents = seasonOtherRegion2.mangekjemperRequiredEvents.toInt()
         ) {
-            it.events.isMangekjemper(season.mangekjemperRequiredEvents.toInt())
+            it.eventParticipations.isMangekjemper(season.mangekjemperRequiredEvents.toInt())
         }
         resultsOther2.getParticipant(DONALD_DUCK) shouldBe null
         val oleOther2 = resultsOther2.getParticipant(OLE)!!
@@ -429,13 +429,13 @@ class FinalScoreCalculation {
 
     private fun SeasonParticipant.shouldHaveMangekjemperRanks(vararg ranks: Pair<String, Int>) {
         ranks.map { (eventName, eventRank) ->
-            val simplifiedEvent = this.events.find { it.eventName == eventName }
+            val simplifiedEvent = this.eventParticipations.find { it.eventName == eventName }
             "$eventName-$eventRank" to "$eventName-${simplifiedEvent?.mangekjemperRank ?: 0}"
         }.shouldForAll { (expected, actual) ->
             actual shouldBe expected
         }
     }
 
-    private fun SeasonParticipant.getEvent(eventName: String): SeasonSimplifiedEvent = events.find { it.eventName == eventName }!!
+    private fun SeasonParticipant.getEvent(eventName: String): EventParticipation = eventParticipations.find { it.eventName == eventName }!!
     private fun List<SeasonParticipant>.getParticipant(person: SetupPerson): SeasonParticipant? = find { it.personName == person.name }
 }

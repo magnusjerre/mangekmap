@@ -97,7 +97,7 @@ class EventPointsCalculatorTest {
         }
     }
 
-    private fun eventMangekjemper(mangekjemperRank: Int, seasonId: Long) = SeasonSimplifiedEvent(
+    private fun eventMangekjemper(mangekjemperRank: Int, seasonId: Long) = EventParticipation(
         eventName = "generic",
         category = Category("", ""),
         eventId = 1L,
@@ -105,7 +105,7 @@ class EventPointsCalculatorTest {
         seasonId = seasonId
     )
 
-    private fun eventNotMangekjemper(actualRank: Int, seasonId: Long) = SeasonSimplifiedEvent(
+    private fun eventNotMangekjemper(actualRank: Int, seasonId: Long) = EventParticipation(
         eventName = "generic",
         category = Category("", ""),
         eventId = 1L,

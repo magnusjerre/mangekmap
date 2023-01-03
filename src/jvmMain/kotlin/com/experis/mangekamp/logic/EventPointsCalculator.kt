@@ -10,36 +10,36 @@ class EventPointsCalculator(
 ) {
     private var count: Int = 0
 
-    fun calculateAndSetEventPoints(event: SeasonSimplifiedEvent): SeasonSimplifiedEvent = event.apply {
-        if (event.mangekjemperRank != null) {
-            calculateAndSetMangekjemperPoints(event)
+    fun calculateAndSetEventPoints(eventParticipation: EventParticipation): EventParticipation = eventParticipation.apply {
+        if (eventParticipation.mangekjemperRank != null) {
+            calculateAndSetMangekjemperPoints(eventParticipation)
         } else {
-            calculateAndSetNonMangekjemperPoints(event)
+            calculateAndSetNonMangekjemperPoints(eventParticipation)
         }
     }
 
-    private fun calculateAndSetMangekjemperPoints(event: SeasonSimplifiedEvent) {
+    private fun calculateAndSetMangekjemperPoints(eventParticipation: EventParticipation) {
         if (++count <= maxEventsOfSameBeforePenalty) {
-            if (event.seasonId == currentSeasonId) {
-                event.eventPoints = event.mangekjemperRank!!
-                event.eventPointsReason = PointsReason.MANGEKJEMPER
+            if (eventParticipation.seasonId == currentSeasonId) {
+                eventParticipation.eventPoints = eventParticipation.mangekjemperRank!!
+                eventParticipation.eventPointsReason = PointsReason.MANGEKJEMPER
             } else {
-                event.eventPoints = totalMangekjempere
-                event.eventPointsReason = PointsReason.OTHER_REGION_MANGEKJEMPER
+                eventParticipation.eventPoints = totalMangekjempere
+                eventParticipation.eventPointsReason = PointsReason.OTHER_REGION_MANGEKJEMPER
             }
         } else {
-            event.eventPoints = max(penaltyPoints, event.mangekjemperRank!!)
-            event.eventPointsReason = PointsReason.MANGEKJEMPER_TOO_MANY_OF_SAME
+            eventParticipation.eventPoints = max(penaltyPoints, eventParticipation.mangekjemperRank!!)
+            eventParticipation.eventPointsReason = PointsReason.MANGEKJEMPER_TOO_MANY_OF_SAME
         }
     }
 
-    private fun calculateAndSetNonMangekjemperPoints(event: SeasonSimplifiedEvent) {
-        if (event.seasonId == currentSeasonId) {
-            event.eventPoints = event.actualRank!!
-            event.eventPointsReason = PointsReason.NOT_MANGEKJEMPER
+    private fun calculateAndSetNonMangekjemperPoints(eventParticipation: EventParticipation) {
+        if (eventParticipation.seasonId == currentSeasonId) {
+            eventParticipation.eventPoints = eventParticipation.actualRank!!
+            eventParticipation.eventPointsReason = PointsReason.NOT_MANGEKJEMPER
         } else {
-            event.eventPoints = max(event.actualRank!!, penaltyPoints)
-            event.eventPointsReason = PointsReason.OTHER_REGION_NOT_MANGEKJEMPER
+            eventParticipation.eventPoints = max(eventParticipation.actualRank!!, penaltyPoints)
+            eventParticipation.eventPointsReason = PointsReason.OTHER_REGION_NOT_MANGEKJEMPER
         }
     }
 }

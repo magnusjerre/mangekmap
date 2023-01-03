@@ -12,11 +12,11 @@ class MangekjemperStatusOrEventCountComparatorTest {
             personId = 1L,
             personName = "Donald Duck",
             seasonPoints = 3,
-            events = listOf(
-                SeasonSimplifiedEvent(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 1, mangekjemperRank = 1),
-                SeasonSimplifiedEvent(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 1, mangekjemperRank = 1),
-                SeasonSimplifiedEvent(ORIENTERING, SetupCategory.KONDISJON.getAsCategory(), 3L, 1L, actualRank = 1, mangekjemperRank = 1),
-                SeasonSimplifiedEvent(PADEL, SetupCategory.BALL.getAsCategory(), 4L, 1L, actualRank = 1, mangekjemperRank = 1),
+            eventParticipations = listOf(
+                EventParticipation(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 1, mangekjemperRank = 1),
+                EventParticipation(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 1, mangekjemperRank = 1),
+                EventParticipation(ORIENTERING, SetupCategory.KONDISJON.getAsCategory(), 3L, 1L, actualRank = 1, mangekjemperRank = 1),
+                EventParticipation(PADEL, SetupCategory.BALL.getAsCategory(), 4L, 1L, actualRank = 1, mangekjemperRank = 1),
             ),
             gender = Gender.MALE,
             seasonRank = -1,
@@ -26,10 +26,10 @@ class MangekjemperStatusOrEventCountComparatorTest {
             personId = 2L,
             personName = "Onkel Skrue",
             seasonPoints = 6,
-            events = listOf(
-                SeasonSimplifiedEvent(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 2, mangekjemperRank = 2),
-                SeasonSimplifiedEvent(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 2, mangekjemperRank = 2),
-                SeasonSimplifiedEvent(ORIENTERING, SetupCategory.KONDISJON.getAsCategory(), 3L, 1L, actualRank = 2, mangekjemperRank = 2),
+            eventParticipations = listOf(
+                EventParticipation(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 2, mangekjemperRank = 2),
+                EventParticipation(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 2, mangekjemperRank = 2),
+                EventParticipation(ORIENTERING, SetupCategory.KONDISJON.getAsCategory(), 3L, 1L, actualRank = 2, mangekjemperRank = 2),
             ),
             gender = Gender.MALE,
             seasonRank = -1,
@@ -39,9 +39,9 @@ class MangekjemperStatusOrEventCountComparatorTest {
             personId = 1L,
             personName = "Donald Duck",
             seasonPoints = 4,
-            events = listOf(
-                SeasonSimplifiedEvent(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 3),
-                SeasonSimplifiedEvent(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 3, isAttendanceOnly = true),
+            eventParticipations = listOf(
+                EventParticipation(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 3),
+                EventParticipation(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 3, isAttendanceOnly = true),
             ),
             gender = Gender.MALE,
             seasonRank = -1,
@@ -63,11 +63,11 @@ class MangekjemperStatusOrEventCountComparatorTest {
             personId = 1L,
             personName = "Donald Duck",
             seasonPoints = 3,
-            events = listOf(
-                SeasonSimplifiedEvent(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 1, mangekjemperRank = 1),
-                SeasonSimplifiedEvent(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 1, mangekjemperRank = 1),
-                SeasonSimplifiedEvent(ORIENTERING, SetupCategory.KONDISJON.getAsCategory(), 3L, 1L, actualRank = 1, mangekjemperRank = 1),
-                SeasonSimplifiedEvent(PADEL, SetupCategory.BALL.getAsCategory(), 4L, 1L, actualRank = 1, mangekjemperRank = 1),
+            eventParticipations = listOf(
+                EventParticipation(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 1, mangekjemperRank = 1),
+                EventParticipation(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 1, mangekjemperRank = 1),
+                EventParticipation(ORIENTERING, SetupCategory.KONDISJON.getAsCategory(), 3L, 1L, actualRank = 1, mangekjemperRank = 1),
+                EventParticipation(PADEL, SetupCategory.BALL.getAsCategory(), 4L, 1L, actualRank = 1, mangekjemperRank = 1),
             ),
             gender = Gender.MALE,
             seasonRank = -1,
@@ -77,11 +77,11 @@ class MangekjemperStatusOrEventCountComparatorTest {
             personId = 2L,
             personName = "Onkel Skrue",
             seasonPoints = 6,
-            events = listOf(
-                SeasonSimplifiedEvent(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 2, mangekjemperRank = 2),
-                SeasonSimplifiedEvent(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 2, mangekjemperRank = 2),
-                SeasonSimplifiedEvent(ORIENTERING, SetupCategory.KONDISJON.getAsCategory(), 3L, 1L, actualRank = 2, mangekjemperRank = 2),
-                SeasonSimplifiedEvent(PADEL, SetupCategory.BALL.getAsCategory(), 1L, 2L, actualRank = 1, mangekjemperRank = 1),
+            eventParticipations = listOf(
+                EventParticipation(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 2, mangekjemperRank = 2),
+                EventParticipation(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 2, mangekjemperRank = 2),
+                EventParticipation(ORIENTERING, SetupCategory.KONDISJON.getAsCategory(), 3L, 1L, actualRank = 2, mangekjemperRank = 2),
+                EventParticipation(PADEL, SetupCategory.BALL.getAsCategory(), 1L, 2L, actualRank = 1, mangekjemperRank = 1),
             ),
             gender = Gender.MALE,
             seasonRank = -1,
@@ -91,10 +91,10 @@ class MangekjemperStatusOrEventCountComparatorTest {
             personId = 1L,
             personName = "Ole",
             seasonPoints = 4,
-            events = listOf(
-                SeasonSimplifiedEvent(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 4),
-                SeasonSimplifiedEvent(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 4, isAttendanceOnly = true),
-                SeasonSimplifiedEvent(PADEL, SetupCategory.BALL.getAsCategory(), 1L, 2L, actualRank = 2),
+            eventParticipations = listOf(
+                EventParticipation(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 4),
+                EventParticipation(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 1L, actualRank = 4, isAttendanceOnly = true),
+                EventParticipation(PADEL, SetupCategory.BALL.getAsCategory(), 1L, 2L, actualRank = 2),
             ),
             gender = Gender.MALE,
             seasonRank = -1,
@@ -104,11 +104,11 @@ class MangekjemperStatusOrEventCountComparatorTest {
             personId = 2L,
             personName = "Dole",
             seasonPoints = 6,
-            events = listOf(
-                SeasonSimplifiedEvent(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 3, mangekjemperRank = 2),
-                SeasonSimplifiedEvent(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 2L, actualRank = 2, mangekjemperRank = 2),
-                SeasonSimplifiedEvent(ORIENTERING, SetupCategory.KONDISJON.getAsCategory(), 3L, 2L, actualRank = 2, mangekjemperRank = 2),
-                SeasonSimplifiedEvent(PADEL, SetupCategory.BALL.getAsCategory(), 1L, 2L, actualRank = 3, mangekjemperRank = 2),
+            eventParticipations = listOf(
+                EventParticipation(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 3, mangekjemperRank = 2),
+                EventParticipation(ESPORT, SetupCategory.TEKNIKK.getAsCategory(), 2L, 2L, actualRank = 2, mangekjemperRank = 2),
+                EventParticipation(ORIENTERING, SetupCategory.KONDISJON.getAsCategory(), 3L, 2L, actualRank = 2, mangekjemperRank = 2),
+                EventParticipation(PADEL, SetupCategory.BALL.getAsCategory(), 1L, 2L, actualRank = 3, mangekjemperRank = 2),
             ),
             gender = Gender.MALE,
             seasonRank = -1,
@@ -118,8 +118,8 @@ class MangekjemperStatusOrEventCountComparatorTest {
             personId = 3L,
             personName = "Doffen",
             seasonPoints = 20,
-            events = listOf(
-                SeasonSimplifiedEvent(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 5),
+            eventParticipations = listOf(
+                EventParticipation(MINIGOLF, SetupCategory.BALL.getAsCategory(), 1L, 1L, actualRank = 5),
             ),
             gender = Gender.MALE,
             seasonRank = -1,
