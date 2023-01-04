@@ -21,7 +21,7 @@ class IsMangekjemperTest {
             EventParticipation("Poker", teknikk, 6, 1),
             EventParticipation("E-sport", teknikk, 7, 1),
             EventParticipation("Ski med blink", kondisjon, 8, 1),
-        ).isMangekjemper(mangekjemerEventsRequirement = 8, categoryTypes = 3) shouldBe true
+        ).isMangekjemper(mangekjemerEventsRequirement = 8) shouldBe true
     }
 
     @Test
@@ -33,7 +33,7 @@ class IsMangekjemperTest {
             EventParticipation("Frisbeegolf", teknikk, 4, 1),
             EventParticipation("Roing", kondisjon, 5, 1),
             EventParticipation("Poker", teknikk, 6, 1),
-        ).isMangekjemper(mangekjemerEventsRequirement = 5, categoryTypes = 3) shouldBe true
+        ).isMangekjemper(mangekjemerEventsRequirement = 5) shouldBe true
     }
 
     @Test
@@ -47,12 +47,12 @@ class IsMangekjemperTest {
     }
 
     @Test
-    fun `Participant with enough events but too few categories should not be mangekjemeper`() {
+    fun `Participant with enough events but not an event in each category should not be mangekjemeper`() {
         listOf(
             EventParticipation("Minigolf", ball, 1, 1),
             EventParticipation("Orientering", kondisjon, 2, 1),
             EventParticipation("Crossfit", kondisjon, 3, 1),
-        ).isMangekjemper(mangekjemerEventsRequirement = 2, categoryTypes = 3) shouldBe false
+        ).isMangekjemper(mangekjemerEventsRequirement = 2) shouldBe false
     }
 
 }

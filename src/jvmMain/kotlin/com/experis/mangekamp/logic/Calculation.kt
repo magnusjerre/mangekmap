@@ -12,7 +12,9 @@ fun List<Event>.calculateSeason(
     mangekjemperRequirement: (SeasonParticipant) -> Boolean = { it.eventParticipations.isMangekjemper(expectedMangekjemperEvents) }
 ): List<SeasonParticipant> {
     val participants = toSeasonParticipants(gender)
+
     participants.calculateMangekjemperRankings(seasonId, mangekjemperRequirement)
+
     val totalMangekjempere = participants.count { it.isMangekjemper }
     participants.forEach {
         it.calculateSeasonPoints(
@@ -22,76 +24,12 @@ fun List<Event>.calculateSeason(
             totalMangekjempere
         )
     }
+
     val participantsWithThisAsMainSeason = participants.filter { it.eventParticipations.any { ev -> ev.seasonId == seasonId } }
     participantsWithThisAsMainSeason.calculateSeasonRank(seasonId, expectedMangekjemperEvents)
     return participantsWithThisAsMainSeason.sorted()
 }
 
-private fun List<Event>.toSeasonParticipants(gender: Gender): List<SeasonParticipant> {
-    return flatMap { it.participants }
-        .filter { it.id.person.gender == gender }
-        .groupBy { it.id.person }
-        .map { (person, personParticipations) ->
-            SeasonParticipant(
-                personId = person.id!!.toLong(),
-                personName = person.name,
-                gender = person.gender,
-                seasonRank = -1,
-                seasonPoints = -1,
-                eventParticipations = personParticipations.map { pt ->
-                    EventParticipation(
-                        eventName = pt.id.event.title,
-                        category = pt.id.event.category,
-                        actualRank = pt.rank,
-                        isAttendanceOnly = pt.isAttendanceOnly,
-                        mangekjemperRank = null,
-                        eventId = pt.id.event.id!!,
-                        seasonId = pt.id.event.season.id!!,
-                        isTeamBased = pt.id.event.isTeamBased,
-                        teamNumber = pt.teamNumber
-                    )
-                }
-            )
-        }
-}
-fun List<SeasonParticipant>.calculateMangekjemperRankings(seasonId: Long, mangekjemperRequirement: (SeasonParticipant) -> Boolean) {
-    val mangekjempere = this.filter { mangekjemperRequirement(it) && it.eventParticipations.any { ev -> ev.seasonId == seasonId } }
-    mangekjempere.forEach { it.isMangekjemper = true }
-    val thisSeasonsEventIds = mangekjempere.flatMap { it.eventParticipations }.filter { ev -> ev.seasonId == seasonId }.map { it.eventId }.distinct()
-    val allMangekjempereParticipations = mangekjempere.flatMap { it.eventParticipations }
-
-    for (eventId in thisSeasonsEventIds) {
-        calculateandSetMangekjemperRankingsForEvent(eventId, allMangekjempereParticipations)
-    }
-
-    for (mangekjemper in mangekjempere) {
-        mangekjemper.eventParticipations.filter { ev -> ev.isAttendanceOnly }.forEach {
-            it.mangekjemperRank = mangekjempere.count()
-        }
-    }
-
-    // Set mangekjemper rankings for events not part of this particular seasonId (i.e other regions)
-    mangekjempere.flatMap { it.eventParticipations }
-        .filterNot { seasonId == it.seasonId }
-        .forEach { ev -> ev.mangekjemperRank = mangekjempere.count() }
-}
-
-private fun calculateandSetMangekjemperRankingsForEvent(eventId: Long, eventParticipations: List<EventParticipation>) {
-    val relevantParticipations = eventParticipations.filter { it.eventId == eventId }
-    val participationsSortedByActualRank: List<EquallyOrdered<EventParticipation>> =
-        relevantParticipations.sortedWithComparators({ p1, p2 -> p1.actualRank!!.compareTo(p2.actualRank!!) })
-    var nextMangekjemperRank = 1
-
-    for (participationsEquallyRanked in participationsSortedByActualRank) {
-        participationsEquallyRanked.forEach { it.mangekjemperRank = nextMangekjemperRank }
-        nextMangekjemperRank += if (participationsEquallyRanked.first().isTeamBased)
-            (participationsEquallyRanked.distinctBy { it.teamNumber }.size)
-        else
-            participationsEquallyRanked.size()
-    }
-}
-
-// Returns a list with pairs of Category and utilized SeasonSimplifiedEvents
 fun SeasonParticipant.calculateSeasonPoints(
     seasonId: Long,
     penaltyPoints: (Gender) -> Int = { if (it == Gender.MALE) 16 else 8 },
@@ -175,8 +113,8 @@ fun List<SeasonParticipant>.calculateSeasonRank(seasonId: Long, expectedMangekje
     }
 }
 
-fun List<EventParticipation>.isMangekjemper(mangekjemerEventsRequirement: Int = 8, categoryTypes: Int = 3) =
-    count() >= mangekjemerEventsRequirement && map { it.category.name }.distinct().count() == categoryTypes
+fun List<EventParticipation>.isMangekjemper(mangekjemerEventsRequirement: Int = 8) =
+    size >= mangekjemerEventsRequirement && map { it.category.name }.distinct().size == 3
 
 val mangekjemperStatusOrEventCountComparator: (Long, Int) -> Comparator<SeasonParticipant> = { seasonId, expectedMangekjemperRequirement ->
     Comparator { o1, o2 ->
